@@ -32,9 +32,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Redirect to appropriate dashboard immediately
             if (userType === 'creditor') {
-                window.location.replace('/pages/dashboard/creditor-dashboard.html');
+                window.location.replace('./pages/dashboard/creditor-dashboard.html');
             } else if (userType === 'debtor') {
-                window.location.replace('/pages/dashboard/debtor-dashboard.html');
+                window.location.replace('./pages/dashboard/debtor-dashboard.html');
             }
         }
     }
@@ -132,9 +132,9 @@ async function handleLogin(e) {
             if (currentRedirecting !== 'true') {
                 sessionStorage.setItem('isRedirecting', 'true');
                 if (user.type === 'creditor') {
-                    window.location.replace('/pages/dashboard/creditor-dashboard.html');
+                    window.location.replace('./pages/dashboard/creditor-dashboard.html');
                 } else {
-                    window.location.replace('/pages/dashboard/debtor-dashboard.html');
+                    window.location.replace('./pages/dashboard/debtor-dashboard.html');
                 }
             }
         }, 100);
@@ -180,9 +180,9 @@ async function handleLogin(e) {
                     
                     const userType = result.userData.userType;
                     if (userType === 'creditor') {
-                        window.location.replace('/pages/dashboard/creditor-dashboard.html');
+                        window.location.replace('./pages/dashboard/creditor-dashboard.html');
                     } else if (userType === 'debtor') {
-                        window.location.replace('/pages/dashboard/debtor-dashboard.html');
+                        window.location.replace('./pages/dashboard/debtor-dashboard.html');
                     } else {
                         showAlert('ไม่พบประเภทผู้ใช้ในระบบ กรุณาติดต่อผู้ดูแลระบบ', 'danger');
                         sessionStorage.removeItem('isRedirecting'); // รีเซ็ต flag เมื่อเกิดข้อผิดพลาด

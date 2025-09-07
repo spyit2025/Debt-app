@@ -301,7 +301,7 @@ function checkAuth() {
                     if (!isRedirecting && !window.location.pathname.includes('index.html')) {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
-                            window.location.href = '../../index.html';
+                            window.location.href = './index.html';
                         }, 100);
                     }
                 }
@@ -352,12 +352,12 @@ function checkUserType(userId) {
                     if (userData.userType === 'debtor' && !isRedirecting) {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
-                            window.location.href = 'debtor-dashboard.html';
+                            window.location.href = './debtor-dashboard.html';
                         }, 100);
                     } else if (!isRedirecting) {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
-                            window.location.href = '../../index.html';
+                            window.location.href = './index.html';
                         }, 100);
                     }
                 }

@@ -182,7 +182,7 @@ function checkAuth() {
                     if (currentRedirecting !== 'true') {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
-                            window.location.href = '/index.html';
+                            window.location.href = './index.html';
                         }, 100);
                     }
                 }
@@ -225,12 +225,12 @@ function checkUserType(userId) {
                     if (userData.userType === 'creditor' && currentRedirecting !== 'true') {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
-                            window.location.href = '/pages/dashboard/creditor-dashboard.html';
+                            window.location.href = './creditor-dashboard.html';
                         }, 100);
                     } else if (currentRedirecting !== 'true') {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
-                            window.location.href = '/index.html';
+                            window.location.href = './index.html';
                         }, 100);
                     }
                 }

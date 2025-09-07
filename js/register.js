@@ -91,7 +91,7 @@ async function handleRegister(e) {
         
         // Redirect to debtor dashboard
         setTimeout(() => {
-            window.location.href = '../dashboard/debtor-dashboard.html';
+            window.location.href = './pages/dashboard/debtor-dashboard.html';
         }, 2000);
         
     } catch (error) {

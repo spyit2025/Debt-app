@@ -192,7 +192,7 @@ function confirmLogout() {
                     
                     // Redirect to login page
                     setTimeout(() => {
-                        window.location.href = '../../index.html';
+                        window.location.href = './index.html';
                     }, 500);
                 })
                 .catch((error) => {
@@ -200,7 +200,7 @@ function confirmLogout() {
                     // Still redirect even if logout fails
                     localStorage.clear();
                     sessionStorage.clear();
-                    window.location.href = '../../index.html';
+                    window.location.href = './index.html';
                 });
         } else {
             // Fallback if authModule is not available

@@ -222,9 +222,9 @@ const authModule = {
                             sessionStorage.setItem('isRedirecting', 'true');
                             setTimeout(() => {
                                 if (userType === 'creditor') {
-                                    window.location.replace('/pages/dashboard/creditor-dashboard.html');
+                                    window.location.replace('./pages/dashboard/creditor-dashboard.html');
                                 } else if (userType === 'debtor') {
-                                    window.location.replace('/pages/dashboard/debtor-dashboard.html');
+                                    window.location.replace('./pages/dashboard/debtor-dashboard.html');
                                 }
                                 sessionStorage.removeItem('isRedirecting');
                             }, 100);
@@ -233,9 +233,9 @@ const authModule = {
                             sessionStorage.setItem('isRedirecting', 'true');
                             setTimeout(() => {
                                 if (userType === 'creditor') {
-                                    window.location.replace('/pages/dashboard/creditor-dashboard.html');
+                                    window.location.replace('./pages/dashboard/creditor-dashboard.html');
                                 } else if (userType === 'debtor') {
-                                    window.location.replace('/pages/dashboard/debtor-dashboard.html');
+                                    window.location.replace('./pages/dashboard/debtor-dashboard.html');
                                 }
                                 sessionStorage.removeItem('isRedirecting');
                             }, 100);
@@ -262,7 +262,7 @@ const authModule = {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
                             // ใช้ path ที่แน่นอนแทนการคำนวณ
-                            window.location.replace('/index.html');
+                            window.location.replace('./index.html');
                         }, 100);
                     }
                 }
@@ -305,9 +305,9 @@ const authModule = {
                 sessionStorage.setItem('isRedirecting', 'true');
                 setTimeout(() => {
                     if (userType === 'creditor') {
-                        window.location.replace('/pages/dashboard/creditor-dashboard.html');
+                        window.location.replace('./pages/dashboard/creditor-dashboard.html');
                     } else if (userType === 'debtor') {
-                        window.location.replace('/pages/dashboard/debtor-dashboard.html');
+                        window.location.replace('./pages/dashboard/debtor-dashboard.html');
                     }
                     sessionStorage.removeItem('isRedirecting');
                 }, 100);
@@ -317,9 +317,9 @@ const authModule = {
                 sessionStorage.setItem('isRedirecting', 'true');
                 setTimeout(() => {
                     if (userType === 'creditor') {
-                        window.location.replace('/pages/dashboard/creditor-dashboard.html');
+                        window.location.replace('./pages/dashboard/creditor-dashboard.html');
                     } else if (userType === 'debtor') {
-                        window.location.replace('/pages/dashboard/debtor-dashboard.html');
+                        window.location.replace('./pages/dashboard/debtor-dashboard.html');
                     }
                     sessionStorage.removeItem('isRedirecting');
                 }, 100);
