@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     
     // ตรวจสอบว่าส่วนเนื้อหามีอยู่
-    const sections = ['dashboard-content', 'my-debts-content', 'history-content', 'settings-content'];
+    const sections = ['debtor-dashboard-content', 'my-debts-content', 'history-content', 'debtor-settings-content'];
     sections.forEach(sectionId => {
         const section = document.getElementById(sectionId);
         if (!section) {
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // บังคับแสดงเนื้อหาแดชบอร์ดในตอนแรก
-    const dashboardContent = document.getElementById('dashboard-content');
+    const dashboardContent = document.getElementById('debtor-dashboard-content');
     if (dashboardContent) {
         dashboardContent.style.setProperty('display', 'block', 'important');
         dashboardContent.style.setProperty('visibility', 'visible', 'important');
@@ -104,14 +104,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         /* Initially show dashboard content - only when no other section is active */
-        #dashboard-content:not(.hidden) {
+        #debtor-dashboard-content:not(.hidden) {
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
         }
         
         /* Hide dashboard content when other sections are active */
-        #dashboard-content.hidden {
+        #debtor-dashboard-content.hidden {
             display: none !important;
         }
         
@@ -119,16 +119,16 @@ document.addEventListener('DOMContentLoaded', function() {
         #my-debts-content,
         #payments-content,
         #history-content,
-        #settings-content {
+        #debtor-settings-content {
             display: none;
         }
         
         /* Ensure content sections are properly positioned */
-        #dashboard-content,
+        #debtor-dashboard-content,
         #my-debts-content,
         #payments-content,
         #history-content,
-        #settings-content {
+        #debtor-settings-content {
             position: relative;
             z-index: 1;
             min-height: 400px;
@@ -1426,10 +1426,10 @@ function updateActiveNavLink(href) {
 // ซ่อนส่วนเนื้อหาทั้งหมด
 function hideAllContentSections() {
     const sections = [
-        'dashboard-content',
+        'debtor-dashboard-content',
         'my-debts-content', 
         'history-content',
-        'settings-content'
+        'debtor-settings-content'
     ];
     
     if (window.logger) {
@@ -1448,7 +1448,7 @@ function hideAllContentSections() {
             section.classList.remove('force-show', 'active');
             
             // Add hidden class to dashboard content to override CSS
-            if (sectionId === 'dashboard-content') {
+            if (sectionId === 'debtor-dashboard-content') {
                 section.classList.add('hidden');
                 if (window.logger) {
                 window.logger.debug('Added hidden class to dashboard content');
@@ -1482,7 +1482,7 @@ function cleanupDataTables() {
 
 // แสดงเนื้อหาแดชบอร์ด
 function showDashboardContent() {
-    const dashboardContent = document.getElementById('dashboard-content');
+    const dashboardContent = document.getElementById('debtor-dashboard-content');
     if (dashboardContent) {
         dashboardContent.style.display = 'block';
         dashboardContent.style.visibility = 'visible';
@@ -1529,7 +1529,7 @@ function showHistoryContent() {
 
 // แสดงเนื้อหาการตั้งค่า
 function showSettingsContent() {
-    const settingsContent = document.getElementById('settings-content');
+    const settingsContent = document.getElementById('debtor-settings-content');
     if (settingsContent) {
         settingsContent.style.display = 'block';
         settingsContent.style.visibility = 'visible';
