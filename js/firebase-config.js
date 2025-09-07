@@ -6,6 +6,7 @@ const isProduction = window.location.hostname !== 'localhost' &&
                     !window.location.hostname.includes('dev');
 
 const firebaseConfig = {
+  // Firebase Web API Key - Safe for public use in client-side applications
   apiKey: "AIzaSyAyUy74NcG4Ju1SS3sYZL1dGPsUAEaFmkY",
   authDomain: "debt-app-9b26b.firebaseapp.com",
   projectId: "debt-app-9b26b",
