@@ -145,20 +145,19 @@ class PerformanceOptimizer {
         });
     }
 
-    // Optimize Firebase queries
+    // Optimize Firebase queries (cache disabled)
     optimizeFirebaseQuery(query, options = {}) {
         const {
             limit = 20,
             orderBy = 'createdAt',
-            orderDirection = 'desc',
-            cacheTime = 5 * 60 * 1000 // 5 minutes
+            orderDirection = 'desc'
         } = options;
 
+        // Always fetch from network - cache disabled
         return query
             .orderBy(orderBy, orderDirection)
             .limit(limit)
-            .get({ source: 'cache' })
-            .catch(() => query.get()); // Fallback to network
+            .get({ source: 'server' });
     }
 
     // Memory management

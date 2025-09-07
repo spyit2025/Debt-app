@@ -14,7 +14,7 @@
     <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), display-capture=()">
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#1e3a8a" media="(prefers-color-scheme: dark)">
     <meta name="mobile-web-app-capable" content="yes">
@@ -258,9 +258,9 @@
             window.addEventListener('load', () => {
                 // Try different paths for Service Worker registration
                 const swPaths = [
-                    '/sw.js',
+                    'sw.js',
                     './sw.js',
-                    'sw.js'
+                    '/sw.js'
                 ];
                 
                 let registrationAttempted = false;

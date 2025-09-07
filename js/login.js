@@ -25,12 +25,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Redirect to appropriate dashboard with delay
         setTimeout(() => {
-            const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
-            
             if (userType === 'creditor') {
-                window.location.replace(baseUrl + 'pages/dashboard/creditor-dashboard.html');
+                window.location.replace('pages/dashboard/creditor-dashboard.html');
             } else if (userType === 'debtor') {
-                window.location.replace(baseUrl + 'pages/dashboard/debtor-dashboard.html');
+                window.location.replace('pages/dashboard/debtor-dashboard.html');
             }
         }, 100);
     }
@@ -91,11 +89,60 @@ async function handleLogin(e) {
         return;
     }
     
+    // Check for test credentials first
+    console.log('Checking credentials:', email, password);
+    const testCredentials = {
+        'creditor@test.com': { type: 'creditor', name: 'เก่งกาจ มิ่งมงคลจำรัส' },
+        'debtor@test.com': { type: 'debtor', name: 'ทินกร ตาอิน' }
+    };
+    
+    console.log('Test credentials check:', testCredentials[email], password === '123456');
+    
+    if (testCredentials[email] && password === '123456') {
+        console.log('Using test mode login for:', email);
+        // Use test mode login
+        const user = testCredentials[email];
+        
+        // Show loading state
+        setLoadingState(true);
+        
+        // Simulate loading delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Save test data
+        localStorage.setItem('userId', 'test-user-' + user.type);
+        localStorage.setItem('userType', user.type);
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('userDisplayName', user.name);
+        localStorage.setItem('lastLoginTime', new Date().toISOString());
+        localStorage.setItem('isTestMode', 'true');
+        
+        // Handle remember me functionality
+        handleRememberMe(email, rememberMe);
+        
+        // Show success message
+        showAlert('เข้าสู่ระบบสำเร็จ! (โหมดทดสอบ)', 'success');
+        
+        // Redirect after delay
+        setTimeout(() => {
+            if (user.type === 'creditor') {
+                window.location.href = 'pages/dashboard/creditor-dashboard.html';
+            } else {
+                window.location.href = 'pages/dashboard/debtor-dashboard.html';
+            }
+        }, 1000);
+        
+        setLoadingState(false);
+        return;
+    }
+    
     // Check network connection
     if (!navigator.onLine) {
         showAlert('ไม่มีการเชื่อมต่ออินเทอร์เน็ต กรุณาตรวจสอบการเชื่อมต่อและลองใหม่', 'warning');
         return;
     }
+    
+    console.log('Proceeding to Firebase authentication for:', email);
     
     // Show loading state
     setLoadingState(true);
@@ -121,14 +168,11 @@ async function handleLogin(e) {
                 // Set redirect flag to prevent redirect loop
                 sessionStorage.setItem('isRedirecting', 'true');
                 
-                // Clear any existing hash or query parameters
-                const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
-                
                 const userType = result.userData.userType;
                 if (userType === 'creditor') {
-                    window.location.replace(baseUrl + 'pages/dashboard/creditor-dashboard.html');
+                    window.location.replace('pages/dashboard/creditor-dashboard.html');
                 } else if (userType === 'debtor') {
-                    window.location.replace(baseUrl + 'pages/dashboard/debtor-dashboard.html');
+                    window.location.replace('pages/dashboard/debtor-dashboard.html');
                 } else {
                     showAlert('ไม่พบประเภทผู้ใช้ในระบบ กรุณาติดต่อผู้ดูแลระบบ', 'danger');
                 }

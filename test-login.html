@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ทดสอบการเข้าสู่ระบบ - ระบบจัดการหนี้</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/login.css">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Noto Sans Thai', sans-serif;
+        }
+        
+        .test-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        
+        .test-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        .test-info {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .test-credentials {
+            background: #f3e5f5;
+            border: 1px solid #9c27b0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .btn-test {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-test:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-card">
+            <div class="text-center mb-4">
+                <i class="fas fa-flask fa-3x text-primary mb-3"></i>
+                <h2 class="fw-bold text-primary">ทดสอบการเข้าสู่ระบบ</h2>
+                <p class="text-muted">ระบบจัดการหนี้</p>
+            </div>
+            
+            <div class="test-info">
+                <h6 class="text-primary mb-2">
+                    <i class="fas fa-info-circle me-2"></i>ข้อมูลการทดสอบ
+                </h6>
+                <p class="mb-0 small">หน้านี้ใช้สำหรับทดสอบการเข้าสู่ระบบโดยไม่ต้องใช้ Firebase Authentication</p>
+            </div>
+            
+            <div class="test-credentials">
+                <h6 class="text-purple mb-2">
+                    <i class="fas fa-key me-2"></i>ข้อมูลทดสอบ
+                </h6>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>เจ้าหนี้:</strong><br>
+                        <small>อีเมล: creditor@test.com</small><br>
+                        <small>รหัสผ่าน: 123456</small>
+                    </div>
+                    <div class="col-6">
+                        <strong>ลูกหนี้:</strong><br>
+                        <small>อีเมล: debtor@test.com</small><br>
+                        <small>รหัสผ่าน: 123456</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2">
+                <button class="btn btn-test" onclick="testLogin('creditor')">
+                    <i class="fas fa-user-tie me-2"></i>ทดสอบเข้าสู่ระบบ (เจ้าหนี้)
+                </button>
+                <button class="btn btn-test" onclick="testLogin('debtor')">
+                    <i class="fas fa-user me-2"></i>ทดสอบเข้าสู่ระบบ (ลูกหนี้)
+                </button>
+                <button class="btn btn-outline-primary" onclick="goToRealLogin()">
+                    <i class="fas fa-sign-in-alt me-2"></i>ไปยังหน้าเข้าสู่ระบบจริง
+                </button>
+            </div>
+            
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    หน้านี้ใช้สำหรับการทดสอบเท่านั้น
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function testLogin(userType) {
+            // จำลองการเข้าสู่ระบบสำเร็จ
+            const testData = {
+                creditor: {
+                    email: 'creditor@test.com',
+                    name: 'เก่งกาจ มิ่งมงคลจำรัส',
+                    type: 'creditor'
+                },
+                debtor: {
+                    email: 'debtor@test.com',
+                    name: 'ทินกร ตาอิน',
+                    type: 'debtor'
+                }
+            };
+            
+            const user = testData[userType];
+            
+            // บันทึกข้อมูลผู้ใช้ใน localStorage
+            localStorage.setItem('userId', 'test-user-' + userType);
+            localStorage.setItem('userType', userType);
+            localStorage.setItem('userEmail', user.email);
+            localStorage.setItem('userDisplayName', user.name);
+            localStorage.setItem('lastLoginTime', new Date().toISOString());
+            localStorage.setItem('isTestMode', 'true');
+            
+            // แสดงข้อความสำเร็จ
+            alert(`เข้าสู่ระบบสำเร็จ!\n\nชื่อ: ${user.name}\nประเภท: ${userType === 'creditor' ? 'เจ้าหนี้' : 'ลูกหนี้'}\n\nกำลังนำไปยังแดชบอร์ด...`);
+            
+            // นำไปยังแดชบอร์ดที่เหมาะสม
+            setTimeout(() => {
+                if (userType === 'creditor') {
+                    window.location.href = 'pages/dashboard/creditor-dashboard.html';
+                } else {
+                    window.location.href = 'pages/dashboard/debtor-dashboard.html';
+                }
+            }, 1000);
+        }
+        
+        function goToRealLogin() {
+            window.location.href = 'index.html';
+        }
+        
+        // ตรวจสอบว่าผู้ใช้เข้าสู่ระบบแล้วหรือไม่
+        document.addEventListener('DOMContentLoaded', function() {
+            const userId = localStorage.getItem('userId');
+            const userType = localStorage.getItem('userType');
+            const isTestMode = localStorage.getItem('isTestMode');
+            
+            if (userId && userType && isTestMode === 'true') {
+                // ถ้าเข้าสู่ระบบแล้วในโหมดทดสอบ ให้แสดงข้อมูล
+                const userName = localStorage.getItem('userDisplayName');
+                const userEmail = localStorage.getItem('userEmail');
+                
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'alert alert-info';
+                infoDiv.innerHTML = `
+                    <h6><i class="fas fa-user me-2"></i>เข้าสู่ระบบแล้ว</h6>
+                    <p class="mb-1"><strong>ชื่อ:</strong> ${userName}</p>
+                    <p class="mb-1"><strong>อีเมล:</strong> ${userEmail}</p>
+                    <p class="mb-0"><strong>ประเภท:</strong> ${userType === 'creditor' ? 'เจ้าหนี้' : 'ลูกหนี้'}</p>
+                `;
+                
+                document.querySelector('.test-card').insertBefore(infoDiv, document.querySelector('.test-info'));
+            }
+        });
+    </script>
+</body>
+</html>

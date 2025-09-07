@@ -3623,7 +3623,6 @@ let isLoadingPaymentHistory = false;
 function loadPaymentHistory() {
     // Prevent duplicate loading
     if (isLoadingPaymentHistory) {
-        console.log('Payment history is already loading, skipping...');
         return;
     }
     
@@ -3677,13 +3676,9 @@ function loadPaymentHistory() {
         .then(function(querySnapshot) {
             paymentHistoryData = [];
             
-            console.log('Found debts:', querySnapshot.size);
-            
             querySnapshot.forEach(function(doc) {
                 const debtData = doc.data();
                 const paymentHistory = debtData.paymentHistory || [];
-                
-                console.log('Debt:', doc.id, 'Payment history count:', paymentHistory.length);
                 
                 // Add each payment to the history data
                 paymentHistory.forEach(function(payment, index) {
@@ -3717,8 +3712,6 @@ function loadPaymentHistory() {
                 applyPaymentHistoryFilter();
             }
             
-            console.log('Total payment history data:', paymentHistoryData.length);
-            
             // Show message if no payment history found
             if (paymentHistoryData.length === 0) {
                 console.log('No payment history found - showing empty state');
@@ -3738,7 +3731,6 @@ function loadPaymentHistory() {
                 // Update mobile cards for empty state
                 createPaymentHistoryMobileCards();
             } else {
-                console.log('Payment history found - populating table');
                 // Populate table with real data
                 populatePaymentHistoryTable(paymentHistoryData);
                 
@@ -4039,7 +4031,6 @@ function updatePaymentHistoryPagination() {
 function createPaymentHistoryMobileCards() {
     const mobileContainer = document.getElementById('paymentHistoryMobileCards');
     if (!mobileContainer) {
-        console.log('Payment history mobile container not found');
         return;
     }
     

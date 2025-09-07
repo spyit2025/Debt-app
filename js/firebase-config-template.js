@@ -24,3 +24,4 @@ window.firebaseConfig = firebaseConfig;
 // Note: Firebase initialization is now handled by firebase-utils.js
 // to prevent duplicate initialization warnings
 } // End of firebaseConfig check
+

@@ -242,14 +242,12 @@ const authModule = {
                         if (userType === 'creditor' && !currentPage.includes('creditor-dashboard')) {
                             sessionStorage.setItem('isRedirecting', 'true');
                             setTimeout(() => {
-                                const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
-                                window.location.replace(baseUrl + 'pages/dashboard/creditor-dashboard.html');
+                                window.location.replace('pages/dashboard/creditor-dashboard.html');
                             }, 100);
                         } else if (userType === 'debtor' && !currentPage.includes('debtor-dashboard')) {
                             sessionStorage.setItem('isRedirecting', 'true');
                             setTimeout(() => {
-                                const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
-                                window.location.replace(baseUrl + 'pages/dashboard/debtor-dashboard.html');
+                                window.location.replace('pages/dashboard/debtor-dashboard.html');
                             }, 100);
                         }
                     }
@@ -313,8 +311,7 @@ const authModule = {
             if (userType === 'debtor' && !currentPage.includes('debtor')) {
                 sessionStorage.setItem('isRedirecting', 'true');
                 setTimeout(() => {
-                    const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
-                    window.location.replace(baseUrl + 'debtor-dashboard.html');
+                    window.location.replace('debtor-dashboard.html');
                 }, 100);
                 return false;
             }

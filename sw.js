@@ -36,26 +36,26 @@ function isAllowedDomain(url) {
 // Files to cache immediately
 const STATIC_FILES = [
     '/',
-    '/index.html',
-    '/css/style.css',
-    '/css/login.css',
-    '/css/dashboard-styles.css',
-    '/css/performance.css',
-    '/css/responsive-nav.css',
-    '/js/firebase-config.js',
-    '/js/firebase-utils.js',
-    '/js/error-handler.js',
-    '/js/security-utils.js',
-    '/js/performance.js',
-    '/js/auth.js',
-    '/js/login.js',
-    '/js/register.js',
-    '/js/responsive-nav.js',
-    '/pages/auth/register.html',
-    '/pages/dashboard/creditor-dashboard.html',
-    '/pages/dashboard/debtor-dashboard.html',
-    '/pages/dashboard/creditor-dashboard.js',
-    '/pages/dashboard/debtor-dashboard.js',
+    'index.html',
+    'css/style.css',
+    'css/login.css',
+    'css/dashboard-styles.css',
+    'css/performance.css',
+    'css/responsive-nav.css',
+    'js/firebase-config.js',
+    'js/firebase-utils.js',
+    'js/error-handler.js',
+    'js/security-utils.js',
+    'js/performance.js',
+    'js/auth.js',
+    'js/login.js',
+    'js/register.js',
+    'js/responsive-nav.js',
+    'pages/auth/register.html',
+    'pages/dashboard/creditor-dashboard.html',
+    'pages/dashboard/debtor-dashboard.html',
+    'pages/dashboard/creditor-dashboard.js',
+    'pages/dashboard/debtor-dashboard.js',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
     'https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap',
@@ -129,7 +129,7 @@ self.addEventListener('fetch', event => {
     // Handle navigation requests
     if (request.mode === 'navigate') {
         event.respondWith(
-            caches.match('/index.html')
+            caches.match('index.html')
                 .then(response => {
                     return response || fetch(request);
                 })

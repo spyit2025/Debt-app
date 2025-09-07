@@ -111,10 +111,6 @@
     "notifications",
     "background-sync"
   ],
-  "background": {
-    "service_worker": "/sw.js",
-    "type": "module"
-  },
   "display_override": ["minimal-ui", "browser", "standalone"],
   "window_controls_overlay": {
     "title_bar_area": {

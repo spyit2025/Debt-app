@@ -347,7 +347,7 @@ function loadAllUserDebts() {
             const debt = doc.data();
             const debtId = doc.id;
             
-            // Data for DataTable - ตรวจสอบให้แน่ใจว่ามี 6 คอลัมน์
+            // Data for DataTable - ตรวจสอบให้แน่ใจว่ามี 5 คอลัมน์
             const dueDate = debt.dueDate ? new Date(debt.dueDate.toDate()).toLocaleDateString('th-TH') : '-';
             const status = getStatusBadge(debt.status);
             
@@ -356,17 +356,14 @@ function loadAllUserDebts() {
                 debt.description || 'ไม่มีคำอธิบาย',
                 status,
                 `฿${(debt.amount || 0).toLocaleString()}`,
-                dueDate,
-                `<button class="btn btn-sm btn-outline-primary" onclick="editDebt('${debtId}')">
-                    <i class="fas fa-edit me-1"></i>แก้ไข
-                </button>`
+                dueDate
             ];
             
             // ตรวจสอบว่าข้อมูลครบถ้วน
-            if (rowData.length === 6) {
+            if (rowData.length === 5) {
                 debtsData.push(rowData);
             } else {
-                console.error('Debts row data has incorrect number of columns:', rowData.length, 'Expected: 6');
+                console.error('Debts row data has incorrect number of columns:', rowData.length, 'Expected: 5');
                 console.error('Row data:', rowData);
             }
             
@@ -435,8 +432,8 @@ function updateDebtsDataTable(data) {
     }
     
     // ตรวจสอบว่าข้อมูลมีคอลัมน์ครบถ้วนหรือไม่
-    if (data.length > 0 && data[0].length !== 6) {
-        console.error('Debts data has incorrect number of columns:', data[0].length, 'Expected: 6');
+    if (data.length > 0 && data[0].length !== 5) {
+        console.error('Debts data has incorrect number of columns:', data[0].length, 'Expected: 5');
         return;
     }
     
@@ -468,11 +465,6 @@ function updateDebtsDataTable(data) {
             {
                 targets: 4, // คอลัมน์วันครบกำหนด
                 className: 'text-end'
-            },
-            {
-                targets: 5, // คอลัมน์การดำเนินการ
-                className: 'text-center',
-                orderable: false
             }
         ],
         dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
@@ -585,23 +577,20 @@ function loadPaymentHistory() {
             const paymentDate = payment.date ? new Date(payment.date.toDate ? payment.date.toDate() : payment.date).toLocaleDateString('th-TH') : '-';
             const paymentTime = payment.time || (payment.date ? new Date(payment.date.toDate ? payment.date.toDate() : payment.date).toLocaleTimeString('th-TH', {hour: '2-digit', minute: '2-digit'}) : '00:00');
             
-            // Data for DataTable - ตรวจสอบให้แน่ใจว่ามี 6 คอลัมน์
+            // Data for DataTable - ตรวจสอบให้แน่ใจว่ามี 5 คอลัมน์
             const rowData = [
                 payment.debtDescription || 'ไม่ระบุรายละเอียด',
                 payment.creditorName || 'ไม่ระบุชื่อเจ้าหนี้',
                 '<span class="badge bg-success">ชำระแล้ว</span>',
                 `฿${(payment.amount || 0).toLocaleString()}`,
-                `${paymentDate} ${paymentTime}`,
-                `<button class="btn btn-sm btn-outline-primary" onclick="showPaymentHistoryModal('${payment.debtId}')">
-                    <i class="fas fa-credit-card me-1"></i>ดูประวัติ
-                </button>`
+                `${paymentDate} ${paymentTime}`
             ];
             
             // ตรวจสอบว่าข้อมูลครบถ้วน
-            if (rowData.length === 6) {
+            if (rowData.length === 5) {
                 paymentHistoryData.push(rowData);
             } else {
-                console.error('Payment history row data has incorrect number of columns:', rowData.length, 'Expected: 6');
+                console.error('Payment history row data has incorrect number of columns:', rowData.length, 'Expected: 5');
                 console.error('Row data:', rowData);
             }
             
@@ -670,8 +659,8 @@ function updatePaymentHistoryDataTable(data) {
     }
     
     // ตรวจสอบว่าข้อมูลมีคอลัมน์ครบถ้วนหรือไม่
-    if (data.length > 0 && data[0].length !== 6) {
-        console.error('Payment history data has incorrect number of columns:', data[0].length, 'Expected: 6');
+    if (data.length > 0 && data[0].length !== 5) {
+        console.error('Payment history data has incorrect number of columns:', data[0].length, 'Expected: 5');
         return;
     }
     
@@ -703,11 +692,6 @@ function updatePaymentHistoryDataTable(data) {
             {
                 targets: 4, // คอลัมน์วันที่ชำระ
                 className: 'text-end'
-            },
-            {
-                targets: 5, // คอลัมน์การดำเนินการ
-                className: 'text-center',
-                orderable: false
             }
         ],
         dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
@@ -793,13 +777,6 @@ function createDebtItem(debtId, debt) {
             </div>
             <div class="col-md-2 text-end">
                 <small class="text-muted">${dueDate}</small>
-            </div>
-            <div class="col-md-2 text-end">
-                <div class="d-flex gap-1 justify-content-end">
-                    <button class="btn btn-sm btn-outline-primary" onclick="editDebt('${debtId}')">
-                        <i class="fas fa-edit me-1"></i>แก้ไข
-                    </button>
-                </div>
             </div>
         </div>
     `;
@@ -1459,6 +1436,20 @@ function showSettingsContent() {
     }
 }
 
+// Notification settings
+function notificationSettings() {
+    // Remove focus from any elements in modals before showing settings
+    const modals = ['addDebtModal', 'debtDetailsModal', 'installmentPaymentModal'];
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            removeFocusFromModal(modal);
+        }
+    });
+    
+    showSettingsContent();
+}
+
 // ชำระเงิน
 function makePayment(debtId = null) {
     // ลบโมดัลเดิมถ้ามีอยู่
@@ -2068,6 +2059,9 @@ window.debugCheckUserData = debugCheckUserData;
 
 // ===== Chart Functions =====
 
+// ลงทะเบียน Chart.js datalabels plugin
+Chart.register(ChartDataLabels);
+
 // ตัวแปรสำหรับเก็บ charts
 let debtStatusChart = null;
 let paymentTrendChart = null;
@@ -2126,6 +2120,19 @@ function createDebtStatusChart(data) {
                             const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                             return `${label}: ${value} รายการ (${percentage}%)`;
                         }
+                    }
+                },
+                datalabels: {
+                    display: true,
+                    color: '#ffffff',
+                    font: {
+                        weight: 'bold',
+                        size: 14
+                    },
+                    formatter: function(value, context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                        return `${value}\n(${percentage}%)`;
                     }
                 }
             }
