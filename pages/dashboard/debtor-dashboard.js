@@ -288,6 +288,26 @@ function loadDashboardData() {
     
     debtsRef.get().then(function(querySnapshot) {
         
+        // Handle empty data case
+        if (querySnapshot.empty) {
+            // Hide loading states
+            const loadingElements = document.querySelectorAll('[id$="Loading"]');
+            loadingElements.forEach(element => {
+                if (element) element.style.display = 'none';
+            });
+            
+            // Show empty state messages
+            const chartContainers = document.querySelectorAll('.chart-container');
+            chartContainers.forEach(container => {
+                const canvas = container.querySelector('canvas');
+                const loading = container.querySelector('[id$="Loading"]');
+                if (canvas && loading) {
+                    loading.innerHTML = '<p class="text-muted text-center py-4">ไม่มีข้อมูลหนี้</p>';
+                }
+            });
+            
+            return;
+        }
         
         let totalDebt = 0;
         let totalPrincipal = 0;
@@ -607,7 +627,7 @@ function loadPaymentHistory() {
     debtsRef.orderBy('createdAt', 'desc').get().then(function(querySnapshot) {
         
         // Handle desktop DataTable view
-        const paymentHistoryTableBody = document.getElementById('paymentHistoryTableBody');
+        const paymentHistoryTableBody = document.getElementById('debtorPaymentHistoryTableBody');
         const paymentHistoryList = document.getElementById('paymentHistoryList');
         
         if (querySnapshot.empty) {
@@ -2236,7 +2256,7 @@ let debtOverviewChart = null;
 
 // สร้างกราฟสถานะหนี้ (Pie Chart)
 function createDebtStatusChart(data) {
-    const ctx = document.getElementById('debtStatusChart');
+    const ctx = document.getElementById('debtorDebtStatusChart');
     const loading = document.getElementById('debtStatusLoading');
     if (!ctx) return;
     
@@ -2446,6 +2466,27 @@ function updateAllCharts() {
                 querySnapshot.forEach(function(doc) {
                     debts.push({ id: doc.id, ...doc.data() });
                 });
+                
+                // Handle empty data case
+                if (debts.length === 0) {
+                    // Hide loading states and show empty messages
+                    const loadingElements = document.querySelectorAll('[id$="Loading"]');
+                    loadingElements.forEach(element => {
+                        if (element) {
+                            element.style.display = 'none';
+                        }
+                    });
+                    
+                    const chartContainers = document.querySelectorAll('.chart-container');
+                    chartContainers.forEach(container => {
+                        const canvas = container.querySelector('canvas');
+                        const loading = container.querySelector('[id$="Loading"]');
+                        if (canvas && loading) {
+                            loading.innerHTML = '<p class="text-muted text-center py-4">ไม่มีข้อมูลหนี้</p>';
+                        }
+                    });
+                    return;
+                }
                 
                 // สร้างข้อมูลสำหรับกราฟสถานะหนี้
                 const statusData = {
