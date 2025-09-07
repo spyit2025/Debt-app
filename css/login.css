@@ -1,0 +1,283 @@
+/* ===== LOGIN PAGE STYLES ===== */
+
+.login-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+/* Background Gradient */
+.bg-primary-gradient {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    position: relative;
+    overflow: hidden;
+}
+
+.bg-primary-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+}
+
+/* Feature Items */
+.feature-item {
+    padding: 1.5rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.feature-item h5 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.feature-item p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+
+/* Login Form */
+#loginForm, #registerForm {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+}
+
+/* Register Page Specific Styles */
+.register-page .login-container {
+    padding-top: 80px !important;
+}
+
+.register-page .min-vh-100 {
+    min-height: 100vh;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.75rem;
+}
+
+.form-control {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+}
+
+.input-group-text {
+    background-color: var(--light);
+    border: 2px solid var(--border);
+    border-right: none;
+    color: var(--text-muted);
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+.input-group .form-control:focus {
+    border-left: none;
+}
+
+/* Password Toggle Button */
+#togglePassword {
+    border: 2px solid var(--border);
+    border-left: none;
+    background-color: var(--light);
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+#togglePassword:hover {
+    background-color: var(--primary);
+    color: var(--white);
+    border-color: var(--primary);
+}
+
+/* Remember Me Checkbox */
+.form-check-input {
+    border: 2px solid var(--border);
+    border-radius: 4px;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.form-check-label {
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+/* Submit Button */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border: none;
+    border-radius: 8px;
+    padding: 0.875rem;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Links */
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 991.98px) {
+    .login-container {
+        padding: 1rem;
+        max-width: 100%;
+    }
+    
+    #loginForm, #registerForm {
+        padding: 1.5rem;
+    }
+    
+    .register-page .login-container {
+        padding-top: 120px !important;
+    }
+    
+    /* เพิ่ม margin-top สำหรับข้อความหัวข้อบน tablet */
+    .register-page .text-center.mb-4 {
+        margin-top: 15px !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .login-container {
+        padding: 0.5rem;
+    }
+    
+    #loginForm, #registerForm {
+        padding: 1rem;
+        border-radius: 12px;
+    }
+    
+    .register-page .login-container {
+        padding-top: 140px !important;
+    }
+    
+    /* เพิ่ม margin-top สำหรับข้อความหัวข้อบนมือถือ */
+    .register-page .text-center.mb-4 {
+        margin-top: 20px !important;
+    }
+}
+
+/* สำหรับหน้าจอขนาดเล็กมาก (มือถือขนาดเล็ก) */
+@media (max-width: 375px) {
+    .register-page .login-container {
+        padding-top: 160px !important;
+    }
+    
+    .register-page .text-center.mb-4 {
+        margin-top: 25px !important;
+    }
+    
+    /* ลดขนาดฟอนต์สำหรับหน้าจอเล็ก */
+    .register-page h2 {
+        font-size: 1.5rem !important;
+    }
+    
+    .register-page p.text-muted {
+        font-size: 0.9rem !important;
+    }
+}
+
+/* Loading State */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid var(--white);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error States */
+.form-control.is-invalid {
+    border-color: var(--danger);
+}
+
+.form-control.is-invalid:focus {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+}
+
+.invalid-feedback {
+    color: var(--danger);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Success Animation */
+.fade-in {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
