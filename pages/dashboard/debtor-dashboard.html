@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="description" content="แดชบอร์ดลูกหนี้ - ระบบจัดการหนี้">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>ระบบจัดการหนี้ - แดชบอร์ดลูกหนี้</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts - Noto Sans Thai -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../css/style.css?v=1.0">
+    <link rel="stylesheet" href="../../css/login.css?v=1.0">
+    <link rel="stylesheet" href="../../css/dashboard-styles.css?v=1.0">
+    <link rel="stylesheet" href="../../css/debtor-dashboard.css?v=1.0">
+    <link rel="stylesheet" href="../../css/performance.css?v=1.0">
+    <link rel="stylesheet" href="../../css/mobile-chrome-fix.css?v=2.2.0">
+    
+    <style>
+        .dashboard-header {
+            background-color: #1e3a8a;
+            border-bottom: 1px solid #1e40af;
+            padding: 0.75rem 0;
+        }
+        
+        .dashboard-header .nav-link {
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            margin: 0 0.25rem;
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-header .nav-link:hover,
+        .dashboard-header .nav-link.active {
+            background-color: #3b82f6;
+            color: #ffffff;
+        }
+        
+        /* Prevent navigation menu from wrapping on large screens */
+        .dashboard-header .nav {
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+        
+        .dashboard-header .nav-link {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 767.98px) {
+            .dashboard-header {
+                padding: 0.5rem 0;
+            }
+            
+            .dashboard-header h1 {
+                font-size: 0.9rem !important;
+            }
+            
+            .dashboard-header .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+            }
+            
+            .dashboard-header .badge,
+            .notification-badge-mobile {
+                font-size: 0.5rem !important;
+                padding: 0.2em 0.4em;
+            }
+            
+            /* Mobile menu button styling */
+            .dashboard-header .btn-outline-light {
+                border-color: rgba(255, 255, 255, 0.5);
+                color: #ffffff;
+            }
+            
+            .dashboard-header .btn-outline-light:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+                border-color: #ffffff;
+                color: #ffffff;
+            }
+        }
+        
+        /* Small mobile devices */
+        @media (max-width: 575.98px) {
+            .dashboard-header h1 {
+                font-size: 0.8rem !important;
+            }
+            
+            .dashboard-header .btn {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.75rem;
+            }
+        }
+        
+        /* Mobile Offcanvas Styles */
+        .offcanvas {
+            width: 280px !important;
+        }
+        
+        .offcanvas-header {
+            background-color: #1e3a8a;
+            color: white;
+            border-bottom: 1px solid #1e40af;
+        }
+        
+        .offcanvas-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .offcanvas-body .nav-link {
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 0.25rem;
+            transition: all 0.3s ease;
+            color: #212529 !important;
+            font-weight: 500;
+        }
+        
+        .offcanvas-body .nav-link:hover {
+            background-color: #f8f9fa;
+            color: #1e3a8a;
+        }
+        
+        .offcanvas-body .nav-link.active {
+            background-color: #1e3a8a;
+            color: white !important;
+        }
+        
+        .offcanvas-body .nav-link.text-danger {
+            color: #dc3545 !important;
+        }
+        
+        .offcanvas-body .nav-link.text-danger:hover {
+            background-color: #f8d7da;
+            color: #721c24 !important;
+        }
+        
+
+        
+        .main-content {
+            padding: 2rem;
+        }
+        
+        /* Mobile Main Content */
+        @media (max-width: 767.98px) {
+            .main-content {
+                padding: 1rem 0.75rem;
+            }
+            
+            .stats-card {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .stats-card h3 {
+                font-size: 1.25rem;
+            }
+            
+            .stats-card p {
+                font-size: 0.85rem;
+            }
+            
+            .stats-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.25rem;
+            }
+        }
+        
+        @media (max-width: 575.98px) {
+            .main-content {
+                padding: 0.75rem 0.5rem;
+            }
+            
+            .stats-card {
+                padding: 0.75rem;
+            }
+            
+            .stats-card h3 {
+                font-size: 1.1rem;
+            }
+            
+            .stats-card p {
+                font-size: 0.8rem;
+            }
+            
+            .stats-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+        }
+        
+        .stats-card {
+            background-color: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stats-icon.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+        
+        .stats-icon.success {
+            background-color: var(--success);
+            color: var(--white);
+        }
+        
+        .stats-icon.warning {
+            background-color: var(--warning);
+            color: var(--white);
+        }
+        
+        .stats-icon.danger {
+            background-color: var(--danger);
+            color: var(--white);
+        }
+        
+        .debt-list {
+            background-color: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        
+        .debt-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        /* Chart Styles */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 0 auto;
+        }
+        
+        .chart-container canvas {
+            max-height: 300px;
+        }
+        
+        .stats-card canvas {
+            max-height: 250px;
+        }
+        
+        /* Responsive chart adjustments */
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 250px;
+            }
+            
+            .stats-card canvas {
+                max-height: 200px;
+            }
+        }
+        }
+        
+        .debt-item:last-child {
+            border-bottom: none;
+        }
+        
+        .debt-item-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+        }
+        
+        .debt-avatar {
+            flex-shrink: 0;
+        }
+        
+        .debt-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .debt-status {
+            flex-shrink: 0;
+        }
+        
+        .debt-amount {
+            flex-shrink: 0;
+            text-align: right;
+        }
+        
+        .debt-date {
+            flex-shrink: 0;
+            text-align: right;
+        }
+        
+        .debt-actions {
+            flex-shrink: 0;
+        }
+        
+        .creditor-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        /* Responsive adjustments for debt items */
+        @media (max-width: 768px) {
+            .debt-item-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .debt-amount,
+            .debt-date {
+                text-align: left;
+            }
+        }
+        
+        /* Content sections visibility control */
+        .content-section {
+            display: none;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .content-section.active,
+        .force-show {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Initially show dashboard content - only when no other section is active */
+        #dashboard-content:not(.hidden) {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Hide dashboard content when other sections are active */
+        #dashboard-content.hidden {
+            display: none !important;
+        }
+        
+        /* Hide other content sections initially */
+        #my-debts-content,
+        #payments-content,
+        #history-content,
+        #settings-content {
+            display: none;
+        }
+        
+        /* Ensure content sections are properly positioned */
+        #dashboard-content,
+        #my-debts-content,
+        #payments-content,
+        #history-content,
+        #settings-content {
+            position: relative;
+            z-index: 1;
+            min-height: 400px;
+        }
+        
+        /* Notification popup animation */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification-popup {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        /* DataTables Custom Styling */
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_processing,
+        .dataTables_wrapper .dataTables_paginate {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+        
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            margin: 0 2px;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #0d6efd;
+            border-color: #0d6efd;
+            color: white !important;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+            color: #6c757d !important;
+            cursor: not-allowed;
+        }
+        
+        /* Responsive table styling */
+        .dataTables_wrapper .dataTables_scrollBody {
+            border: 1px solid #dee2e6;
+        }
+        
+        /* Table styling */
+        #paymentHistoryTable, #debtsTable {
+            margin-bottom: 0;
+        }
+        
+        #paymentHistoryTable thead th, #debtsTable thead th {
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+        }
+        
+        #paymentHistoryTable tbody tr:hover, #debtsTable tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* DataTable responsive styling */
+        #debtsTable {
+            font-size: 0.9rem;
+        }
+        
+        #debtsTable .badge {
+            font-size: 0.75rem;
+        }
+        
+        #debtsTable .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        /* DataTable wrapper styling */
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_processing,
+        .dataTables_wrapper .dataTables_paginate {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+        
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            margin: 0 2px;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #0d6efd;
+            border-color: #0d6efd;
+            color: white !important;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+            color: #6c757d !important;
+            cursor: not-allowed;
+        }
+        
+        /* Responsive table styling */
+        .dataTables_wrapper .dataTables_scrollBody {
+            border: 1px solid #dee2e6;
+        }
+        
+        /* Modal table specific styling */
+        #modalPaymentHistoryTable {
+            width: 100% !important;
+            table-layout: auto;
+        }
+        
+        #modalPaymentHistoryTable_wrapper {
+            width: 100%;
+        }
+        
+        #modalPaymentHistoryTable_wrapper .dataTables_scrollBody {
+            width: 100% !important;
+        }
+        
+        /* Ensure modal table columns have proper width */
+        #modalPaymentHistoryTable th,
+        #modalPaymentHistoryTable td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        #modalPaymentHistoryTable th:nth-child(1),
+        #modalPaymentHistoryTable td:nth-child(1) {
+            width: 25%;
+        }
+        
+        #modalPaymentHistoryTable th:nth-child(2),
+        #modalPaymentHistoryTable td:nth-child(2) {
+            width: 20%;
+        }
+        
+        #modalPaymentHistoryTable th:nth-child(3),
+        #modalPaymentHistoryTable td:nth-child(3) {
+            width: 25%;
+        }
+        
+        #modalPaymentHistoryTable th:nth-child(4),
+        #modalPaymentHistoryTable td:nth-child(4) {
+            width: 30%;
+        }
+        
+        /* Mobile responsive adjustments for modal table */
+        @media (max-width: 768px) {
+            #modalPaymentHistoryTable_wrapper .dataTables_length,
+            #modalPaymentHistoryTable_wrapper .dataTables_filter {
+                margin-bottom: 1rem;
+            }
+            
+            #modalPaymentHistoryTable_wrapper .dataTables_length label,
+            #modalPaymentHistoryTable_wrapper .dataTables_filter label {
+                font-size: 0.875rem;
+            }
+            
+            #modalPaymentHistoryTable th,
+            #modalPaymentHistoryTable td {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.875rem;
+            }
+        }
+        
+        /* Mobile debt cards styling */
+        .debt-item {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            padding: 1.25rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .debt-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .debt-item .creditor-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .debt-item .creditor-initial {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .debt-item h6 {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+        
+        .debt-item .text-muted {
+            color: #6c757d !important;
+            font-size: 0.875rem;
+        }
+        
+        .debt-item .badge {
+            font-size: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 20px;
+        }
+        
+        .debt-item .badge.bg-info {
+            background-color: #17a2b8 !important;
+        }
+        
+        .debt-item .badge.bg-success {
+            background-color: #28a745 !important;
+        }
+        
+        .debt-item .badge.bg-warning {
+            background-color: #ffc107 !important;
+            color: #212529 !important;
+        }
+        
+        .debt-item .badge.bg-danger {
+            background-color: #dc3545 !important;
+        }
+        
+        .debt-item strong {
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        .debt-item .btn {
+            border-radius: 8px;
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+        }
+        
+        /* Mobile specific adjustments */
+        @media (max-width: 768px) {
+            .debt-item {
+                padding: 1rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            .debt-item .creditor-avatar {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .debt-item h6 {
+                font-size: 1rem;
+            }
+            
+            .debt-item .btn {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+            
+            .debt-item .d-flex.gap-1 {
+                gap: 0.5rem !important;
+            }
+        }
+        
+        /* Very small screens */
+        @media (max-width: 576px) {
+            .debt-item {
+                padding: 0.75rem;
+            }
+            
+            .debt-item .creditor-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            
+            .debt-item h6 {
+                font-size: 0.95rem;
+            }
+            
+            .debt-item strong {
+                font-size: 1rem;
+            }
+            
+            .debt-item .btn {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.6rem;
+            }
+        }
+        
+        /* Additional improvements for better readability */
+        .debt-item .row {
+            margin: 0;
+        }
+        
+        .debt-item .col-md-1,
+        .debt-item .col-md-2,
+        .debt-item .col-md-3 {
+            padding: 0.25rem 0.5rem;
+        }
+        
+        /* Better spacing for mobile */
+        @media (max-width: 768px) {
+            .debt-item .col-md-1,
+            .debt-item .col-md-2,
+            .debt-item .col-md-3 {
+                padding: 0.25rem 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <!-- Mobile Menu Button -->
+                <div class="col-6 col-lg-3 d-lg-none">
+                    <button class="btn btn-outline-light" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu" title="เมนู">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="h6 mb-0 text-white d-inline ms-2">
+                        <i class="fas fa-user me-1"></i>
+                        แดชบอร์ดลูกหนี้
+                    </h1>
+                </div>
+                
+                <!-- Desktop Title -->
+                <div class="col-lg-3 d-none d-lg-block">
+                    <h1 class="h4 mb-0 text-white">
+                        <i class="fas fa-user me-2"></i>
+                        แดชบอร์ดลูกหนี้
+                    </h1>
+                </div>
+                
+                <!-- Desktop Navigation Menu -->
+                <div class="col-lg-6 d-none d-lg-block">
+                    <nav class="nav justify-content-center">
+                        <a class="nav-link active" href="#dashboard">
+                            <i class="fas fa-tachometer-alt me-2"></i>
+                            แดชบอร์ด
+                        </a>
+                        <a class="nav-link" href="#my-debts">
+                            <i class="fas fa-list me-2"></i>
+                            หนี้ของฉัน
+                        </a>
+                        <a class="nav-link" href="#history">
+                            <i class="fas fa-history me-2"></i>
+                            ประวัติ
+                        </a>
+                        <a class="nav-link" href="#settings">
+                            <i class="fas fa-cog me-2"></i>
+                            ตั้งค่า
+                        </a>
+                        <a class="nav-link" href="#" onclick="confirmLogout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>
+                            ออกจากระบบ
+                        </a>
+                    </nav>
+                </div>
+                
+                <!-- Right Side - Notifications and User Info -->
+                <div class="col-6 col-lg-3 text-end">
+                    <div class="d-flex align-items-center justify-content-end">
+                        
+                        <!-- User Info -->
+                        <span class="text-white d-none d-sm-inline">
+                            <i class="fas fa-user me-1 me-md-2"></i>
+                            <span id="userName" class="d-none d-md-inline">ผู้ใช้</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu Offcanvas -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="mobileMenuLabel">
+                <i class="fas fa-user me-2"></i>
+                แดชบอร์ดลูกหนี้
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <!-- User Info in Mobile Menu -->
+            <div class="mb-4 p-3 bg-light rounded">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-user-circle fa-2x text-primary me-3"></i>
+                    <div>
+                        <h6 class="mb-0" id="mobileUserName">ผู้ใช้</h6>
+                        <small class="text-muted">ลูกหนี้</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile Navigation Menu -->
+            <nav class="nav flex-column">
+                <a class="nav-link active mb-2" href="#dashboard" data-bs-dismiss="offcanvas">
+                    <i class="fas fa-tachometer-alt me-2"></i>
+                    แดชบอร์ด
+                </a>
+                <a class="nav-link mb-2" href="#my-debts" data-bs-dismiss="offcanvas">
+                    <i class="fas fa-list me-2"></i>
+                    หนี้ของฉัน
+                </a>
+                <a class="nav-link mb-2" href="#history" data-bs-dismiss="offcanvas">
+                    <i class="fas fa-history me-2"></i>
+                    ประวัติ
+                </a>
+                <a class="nav-link mb-2" href="#settings" data-bs-dismiss="offcanvas">
+                    <i class="fas fa-cog me-2"></i>
+                    ตั้งค่า
+                </a>
+                <hr class="my-3">
+                <a class="nav-link text-danger" href="#" onclick="confirmLogout()" data-bs-dismiss="offcanvas">
+                    <i class="fas fa-sign-out-alt me-2"></i>
+                    ออกจากระบบ
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-12 main-content">
+                <!-- Dashboard Content -->
+                <div id="dashboard-content">
+                    <!-- Stats Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-icon primary">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <h3 class="h4 mb-1">฿<span id="debtorTotalDebt">0</span></h3>
+                                <p class="text-muted mb-0">ยอดหนี้รวม</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-icon success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <h3 class="h4 mb-1">฿<span id="paidAmount">0</span></h3>
+                                <p class="text-muted mb-0">ชำระแล้ว</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-icon warning">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <h3 class="h4 mb-1"><span id="debtorPendingDebts">0</span></h3>
+                                <p class="text-muted mb-0">หนี้ที่รอชำระ</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-icon danger">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <h3 class="h4 mb-1"><span id="debtorOverdueDebts">0</span></h3>
+                                <p class="text-muted mb-0">หนี้ที่เกินกำหนด</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="stats-card">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-chart-pie me-2"></i>
+                                    สถานะหนี้
+                                </h5>
+                                <div class="chart-container">
+                                    <canvas id="debtStatusChart"></canvas>
+                                    <div id="debtStatusLoading" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">กำลังโหลด...</span>
+                                        </div>
+                                        <p class="mt-2 text-muted">กำลังโหลดข้อมูล...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stats-card">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-chart-line me-2"></i>
+                                    การชำระเงินรายเดือน
+                                </h5>
+                                <div class="chart-container">
+                                    <canvas id="paymentTrendChart"></canvas>
+                                    <div id="paymentTrendLoading" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">กำลังโหลด...</span>
+                                        </div>
+                                        <p class="mt-2 text-muted">กำลังโหลดข้อมูล...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Debt Overview Chart -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="stats-card">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-chart-bar me-2"></i>
+                                    ภาพรวมหนี้รายเดือน
+                                </h5>
+                                <div class="chart-container">
+                                    <canvas id="debtOverviewChart"></canvas>
+                                    <div id="debtOverviewLoading" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">กำลังโหลด...</span>
+                                        </div>
+                                        <p class="mt-2 text-muted">กำลังโหลดข้อมูล...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                </div>
+
+                <!-- My Debts Content -->
+                <div id="my-debts-content">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="debt-list">
+                                <div class="p-3 border-bottom">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-list me-2"></i>
+                                        หนี้ทั้งหมดของฉัน
+                                    </h5>
+                                </div>
+                                
+                                <!-- Desktop DataTable View -->
+                                <div class="d-none d-lg-block">
+                                    <div class="table-responsive">
+                                        <table id="debtsTable" class="table table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>เจ้าหนี้</th>
+                                                    <th>คำอธิบาย</th>
+                                                    <th>สถานะ</th>
+                                                    <th class="text-end">จำนวนเงิน</th>
+                                                    <th class="text-end">วันครบกำหนด</th>
+                                                    <th class="text-center">การดำเนินการ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="debtsTableBody">
+                                                <!-- Data will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <!-- Mobile Card View -->
+                                <div class="d-lg-none" id="allDebtsList">
+                                    <!-- All debt items will be loaded here for mobile -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- History Content -->
+                <div id="history-content">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="debt-list">
+                                <div class="p-3 border-bottom">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-history me-2"></i>
+                                        ประวัติการชำระเงิน
+                                    </h5>
+                                </div>
+                                
+                                <!-- Desktop DataTable View -->
+                                <div class="d-none d-lg-block">
+                                    <div class="table-responsive">
+                                        <table id="paymentHistoryTable" class="table table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>รายละเอียดหนี้</th>
+                                                    <th>เจ้าหนี้</th>
+                                                    <th>สถานะ</th>
+                                                    <th class="text-end">จำนวนเงิน</th>
+                                                    <th class="text-end">วันที่ชำระ</th>
+                                                    <th class="text-center">การดำเนินการ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="paymentHistoryTableBody">
+                                                <!-- Data will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <!-- Mobile Card View -->
+                                <div class="d-lg-none" id="paymentHistoryList">
+                                    <!-- Payment history items will be loaded here for mobile -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Content -->
+                <div id="settings-content">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="stats-card">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-cog me-2"></i>
+                                    ตั้งค่า
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">การแสดงผล</label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="darkMode">
+                                                <label class="form-check-label" for="darkMode">
+                                                    โหมดมืด
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="compactView">
+                                                <label class="form-check-label" for="compactView">
+                                                    มุมมองกะทัดรัด
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" onclick="saveSettings()">
+                                    <i class="fas fa-save me-2"></i>
+                                    บันทึกการตั้งค่า
+                                </button>
+                                
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment History Modal -->
+    <div class="modal fade" id="installmentPaymentModal" tabindex="-1" aria-labelledby="installmentPaymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="installmentPaymentModalLabel">
+                        <i class="fas fa-history me-2"></i>ประวัติการชำระหนี้
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h6 class="text-primary mb-3">ข้อมูลการชำระ</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>ยอดรวม:</strong></div>
+                                        <div class="col-6" id="modalTotalAmount">฿0</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>ผ่อนเดือนละ:</strong></div>
+                                        <div class="col-6" id="modalMonthlyPayment">฿0</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>จำนวนงวด:</strong></div>
+                                        <div class="col-6" id="modalTotalInstallments">0 งวด</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>ชำระแล้ว:</strong></div>
+                                        <div class="col-6" id="modalPaidInstallments">0 งวด</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>เหลือ:</strong></div>
+                                        <div class="col-6" id="modalRemainingInstallments">0 งวด</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>ยอดคงเหลือ:</strong></div>
+                                        <div class="col-6" id="modalRemainingAmount">฿0</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 d-none" id="paymentSection">
+                            <h6 class="text-primary mb-3">ชำระงวดนี้</h6>
+                            <div class="mb-3">
+                                <label for="debtorPaymentAmount" class="form-label">จำนวนเงินที่ชำระ:</label>
+                                <input type="number" class="form-control" id="debtorPaymentAmount" min="0" step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label for="debtorPaymentDate" class="form-label">วันที่ชำระ:</label>
+                                <input type="date" class="form-control" id="debtorPaymentDate">
+                            </div>
+                            <div class="mb-3">
+                                <label for="debtorPaymentTime" class="form-label">เวลา:</label>
+                                <input type="time" class="form-control" id="debtorPaymentTime">
+                            </div>
+                            <div class="mb-3">
+                                <label for="debtorPaymentNote" class="form-label">หมายเหตุ:</label>
+                                <textarea class="form-control" id="debtorPaymentNote" rows="2" placeholder="หมายเหตุการชำระ (ถ้ามี)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-primary mb-3">ประวัติการชำระ</h6>
+                            <div class="table-responsive">
+                                <table id="modalPaymentHistoryTable" class="table table-sm table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>วันที่</th>
+                                            <th>เวลา</th>
+                                            <th>จำนวนเงิน</th>
+                                            <th>หมายเหตุ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modalPaymentHistoryTableBody">
+                                        <!-- Payment history will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-end align-items-center">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>ปิด
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery (required for DataTables) - MUST be loaded first -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    
+    <!-- DataTables Initialization -->
+    <script src="../../js/datatables-init.js?v=2.1.0"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="../../js/performance.js?v=1.0"></script>
+    <script src="../../js/error-handler.js?v=1.0"></script>
+    <script src="../../js/firebase-config.js?v=1.0"></script>
+    <script src="../../js/firebase-utils.js?v=1.0"></script>
+    <script src="../../js/security-utils.js?v=1.0"></script>
+    <script src="../../js/alert-utils.js?v=1.0"></script>
+    <script src="../../js/auth.js?v=1.0"></script>
+    <script src="debtor-dashboard.js?v=1.0"></script>
+    
+    <script>
+        // Function to confirm logout with notification
+        function confirmLogout() {
+            if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
+                // Show success notification before logout
+                if (typeof showToast === 'function') {
+                    showToast('กำลังออกจากระบบ...', 'info');
+                }
+                
+                // Call the original logout function
+                if (typeof logout === 'function') {
+                    logout();
+                } else {
+                    // Fallback if logout function is not available
+                    window.location.href = '../../index.html';
+                }
+            }
+        }
+        
+        // Update mobile menu user name when main user name is updated
+        function updateMobileUserName() {
+            const mainUserName = document.getElementById('userName');
+            const mobileUserName = document.getElementById('mobileUserName');
+            
+            if (mainUserName && mobileUserName) {
+                mobileUserName.textContent = mainUserName.textContent;
+            }
+        }
+        
+        // Listen for changes to the main user name
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                    updateMobileUserName();
+                }
+            });
+        });
+        
+        // Start observing when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const userNameElement = document.getElementById('userName');
+            if (userNameElement) {
+                observer.observe(userNameElement, {
+                    childList: true,
+                    characterData: true,
+                    subtree: true
+                });
+                // Initial update
+                updateMobileUserName();
+            }
+            
+            // Add click event listeners to mobile menu links
+            setupMobileMenuNavigation();
+            
+            // Listen for hash changes
+            window.addEventListener('hashchange', function() {
+                const hash = window.location.hash || '#dashboard';
+                updateMobileActiveNavLink(hash);
+                showContentSection(hash);
+            });
+            
+            // Initial navigation based on current hash
+            const initialHash = window.location.hash || '#dashboard';
+            updateMobileActiveNavLink(initialHash);
+            showContentSection(initialHash);
+        });
+        
+        // Setup mobile menu navigation
+        function setupMobileMenuNavigation() {
+            const mobileMenuLinks = document.querySelectorAll('.offcanvas-body .nav-link[href^="#"]');
+            
+            mobileMenuLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const href = this.getAttribute('href');
+                    
+                    // Call the navigation function if it exists
+                    if (typeof handleNavigation === 'function') {
+                        handleNavigation(href);
+                    } else {
+                        // Fallback: manually handle navigation
+                        window.location.hash = href;
+                        updateMobileActiveNavLink(href);
+                        showContentSection(href);
+                    }
+                });
+            });
+        }
+        
+        // Update active nav link in mobile menu
+        function updateMobileActiveNavLink(href) {
+            // Remove active class from all mobile menu links (both desktop and mobile)
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Add active class to current mobile menu link
+            const mobileActiveLink = document.querySelector(`.offcanvas-body .nav-link[href="${href}"]`);
+            if (mobileActiveLink) {
+                mobileActiveLink.classList.add('active');
+            }
+            
+            // Also update desktop navigation if it exists
+            const desktopActiveLink = document.querySelector(`header .nav-link[href="${href}"]`);
+            if (desktopActiveLink) {
+                desktopActiveLink.classList.add('active');
+            }
+        }
+        
+        // Show content section based on hash
+        function showContentSection(href) {
+            // Hide all content sections
+            const sections = ['dashboard-content', 'my-debts-content', 'history-content', 'settings-content'];
+            sections.forEach(sectionId => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.style.display = 'none';
+                }
+            });
+            
+            // Show the appropriate section
+            let targetSectionId = 'dashboard-content'; // default
+            
+            switch (href) {
+                case '#dashboard':
+                    targetSectionId = 'dashboard-content';
+                    break;
+                case '#my-debts':
+                    targetSectionId = 'my-debts-content';
+                    break;
+                case '#history':
+                    targetSectionId = 'history-content';
+                    break;
+                case '#settings':
+                    targetSectionId = 'settings-content';
+                    break;
+            }
+            
+            const targetSection = document.getElementById(targetSectionId);
+            if (targetSection) {
+                targetSection.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

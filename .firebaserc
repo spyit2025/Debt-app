@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "debt-app-9b26b"
+  },
+  "targets": {
+    "debt-app-9b26b": {
+      "hosting": {
+        "debt-app": [
+          "debt-app-9b26b"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

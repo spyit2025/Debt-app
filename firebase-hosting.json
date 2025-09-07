@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "debt-app": {
+      "hosting": {
+        "debt-app": [
+          "debt-app-9b26b"
+        ]
+      }
+    }
+  }
+}

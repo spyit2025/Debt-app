@@ -1,0 +1,21 @@
+{
+  "name": "debt-app",
+  "version": "1.0.0",
+  "description": "Debt Management Web Application",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server -p 3000 -o",
+    "dev": "http-server -p 3000 -o",
+    "test": "echo \"No tests specified\" && exit 0",
+    "build": "echo \"Building for production...\"",
+    "deploy": "echo \"Deploy to GitHub Pages\"",
+    "serve": "http-server -p 3000 -o"
+  },
+  "keywords": ["debt", "management", "web", "app", "firebase"],
+  "author": "",
+  "license": "MIT",
+  "homepage": "https://your-username.github.io/debt-app",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

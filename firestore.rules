@@ -1,0 +1,131 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is a demo user
+    function isDemoUser() {
+      return request.auth != null && 
+        (request.auth.uid.matches('demo-user-.*') || 
+         request.auth.uid.matches('.*demo.*'));
+    }
+    
+    // Users collection - allow users to read/write their own data
+    match /users/{userId} {
+      allow create: if request.auth != null && 
+        request.auth.uid == userId &&
+        request.resource.data.keys().hasAll(['email', 'userType', 'createdAt']) &&
+        request.resource.data.email is string &&
+        request.resource.data.userType in ['creditor', 'debtor'] &&
+        request.resource.data.createdAt is timestamp;
+      
+      allow read, update, delete: if request.auth != null && 
+        (request.auth.uid == userId || 
+         // Allow creditors to read all user information for search
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == 'creditor') ||
+         // Allow demo users to read/write their own data
+         isDemoUser());
+    }
+    
+    // Debts collection - allow users to read/write debts they're involved in
+    match /debts/{debtId} {
+      allow create: if request.auth != null &&
+        request.resource.data.keys().hasAll(['creditorId', 'debtorName', 'amount', 'createdAt']) &&
+        (request.resource.data.creditorId == request.auth.uid || isDemoUser()) &&
+        request.resource.data.amount is number &&
+        request.resource.data.amount > 0 &&
+        request.resource.data.amount <= 999999999 &&
+        request.resource.data.createdAt is timestamp;
+      
+      allow read, write: if request.auth != null && 
+        (resource.data.creditorId == request.auth.uid || 
+         resource.data.debtorId == request.auth.uid ||
+         // Allow demo users to read/write all debts
+         isDemoUser() ||
+         // Allow reading by phone number or email for debtors
+         (resource.data.debtorPhone != null && 
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phone == resource.data.debtorPhone ||
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phoneNumber == resource.data.debtorPhone)) ||
+         (resource.data.debtorEmail != null && 
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.email == resource.data.debtorEmail));
+    }
+    
+    // Allow listing debts collection for authenticated users with where clauses
+    match /debts/{debtId} {
+      allow list: if request.auth != null && 
+        ((request.query.limit <= 100) &&
+         (request.query.filters == null || 
+          request.query.filters.size() <= 1) &&
+         (request.query.filters == null || 
+          request.query.filters[0].fieldPath in ['debtorEmail', 'debtorPhone', 'creditorId', 'debtorId'])) ||
+        // Allow demo users to list all debts
+        isDemoUser();
+    }
+    
+    // Payments collection - allow users to read/write payments they're involved in
+    match /payments/{paymentId} {
+      allow create: if request.auth != null && 
+        ((request.resource.data.creditorId == request.auth.uid || 
+          request.resource.data.debtorId == request.auth.uid) ||
+         isDemoUser()) &&
+        request.resource.data.keys().hasAll(['amount', 'createdAt']) &&
+        request.resource.data.amount is number &&
+        request.resource.data.amount > 0 &&
+        request.resource.data.amount <= 999999999 &&
+        request.resource.data.createdAt is timestamp;
+      
+      allow read, write: if request.auth != null && 
+        (resource.data.creditorId == request.auth.uid || 
+         resource.data.debtorId == request.auth.uid ||
+         // Allow demo users to read/write all payments
+         isDemoUser() ||
+         // Allow reading by phone number or email for debtors
+         (resource.data.debtorPhone != null && 
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phone == resource.data.debtorPhone ||
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phoneNumber == resource.data.debtorPhone)) ||
+         (resource.data.debtorEmail != null && 
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.email == resource.data.debtorEmail));
+    }
+    
+    // Allow listing payments collection for authenticated users
+    match /payments/{paymentId} {
+      allow list: if request.auth != null && 
+        ((request.query.limit <= 100) || isDemoUser());
+    }
+    
+    // Notifications collection - allow users to read/write their own notifications
+    match /notifications/{notificationId} {
+      allow create: if request.auth != null && 
+        ((request.resource.data.userId == request.auth.uid ||
+          // Allow creditors to create notifications for debtors
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == 'creditor' &&
+           request.resource.data.type == 'new_debt')) ||
+         isDemoUser()) &&
+        request.resource.data.keys().hasAll(['type', 'createdAt']) &&
+        request.resource.data.createdAt is timestamp;
+      
+      allow read, write: if request.auth != null && 
+        (resource.data.userId == request.auth.uid ||
+         // Allow demo users to read/write all notifications
+         isDemoUser() ||
+         // Allow reading by phone number or email for debtors
+         (resource.data.debtorPhone != null && 
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phone == resource.data.debtorPhone ||
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phoneNumber == resource.data.debtorPhone)) ||
+         (resource.data.debtorEmail != null && 
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.email == resource.data.debtorEmail));
+    }
+    
+    // Default rule - deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

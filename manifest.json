@@ -1,0 +1,127 @@
+{
+  "name": "ระบบจัดการหนี้",
+  "short_name": "จัดการหนี้",
+  "description": "ระบบจัดการหนี้สินแบบครบวงจรสำหรับเจ้าหนี้และลูกหนี้",
+  "start_url": "/",
+  "display": "minimal-ui",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "th",
+  "dir": "ltr",
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "เพิ่มหนี้ใหม่",
+      "short_name": "เพิ่มหนี้",
+      "description": "เพิ่มหนี้ใหม่เข้าสู่ระบบ",
+      "url": "/pages/dashboard/creditor-dashboard.html#add-debt",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>➕</text></svg>",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "ดูรายงาน",
+      "short_name": "รายงาน",
+      "description": "ดูรายงานสรุปหนี้สิน",
+      "url": "/pages/dashboard/creditor-dashboard.html#reports",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800'><rect width='1200' height='800' fill='%23f8fafc'/><text x='600' y='400' text-anchor='middle' font-size='48' fill='%232563eb'>ระบบจัดการหนี้</text></svg>",
+      "sizes": "1200x800",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "หน้าหลักของระบบจัดการหนี้"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='800' height='1200' fill='%23f8fafc'/><text x='400' y='600' text-anchor='middle' font-size='36' fill='%232563eb'>ระบบจัดการหนี้</text></svg>",
+      "sizes": "800x1200",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "หน้าหลักของระบบจัดการหนี้ (มือถือ)"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "handle_links": "preferred",
+  "protocol_handlers": [
+    {
+      "protocol": "web+debt",
+      "url": "/?debt=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/pages/dashboard/creditor-dashboard.html",
+      "accept": {
+        "application/json": [".json"],
+        "text/csv": [".csv"]
+      }
+    }
+  ],
+  "share_target": {
+    "action": "/pages/dashboard/creditor-dashboard.html",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "files",
+          "accept": ["application/json", "text/csv"]
+        }
+      ]
+    }
+  },
+  "permissions": [
+    "notifications",
+    "background-sync"
+  ],
+  "background": {
+    "service_worker": "/sw.js",
+    "type": "module"
+  },
+  "display_override": ["minimal-ui", "browser", "standalone"],
+  "window_controls_overlay": {
+    "title_bar_area": {
+      "x": 0,
+      "y": 0,
+      "width": 400,
+      "height": 32
+    }
+  }
+}

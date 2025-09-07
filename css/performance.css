@@ -1,0 +1,563 @@
+/* Performance Optimizations CSS */
+
+/* Optimize animations with will-change */
+.animate-in {
+    will-change: transform, opacity;
+}
+
+/* Lazy loading styles */
+.lazy {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.lazy.loaded {
+    opacity: 1;
+}
+
+/* Optimize images */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Reduce layout shifts */
+.container-fluid,
+.container {
+    contain: layout style paint;
+}
+
+/* Optimize fonts */
+@font-face {
+    font-family: 'Noto Sans Thai';
+    font-display: swap;
+}
+
+/* Optimize critical CSS */
+.critical {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 500px;
+}
+
+/* Optimize non-critical content */
+.non-critical {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 200px;
+}
+
+/* Optimize animations */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Optimize for mobile */
+@media (max-width: 768px) {
+    .mobile-optimized {
+        contain: layout style paint;
+        will-change: auto;
+    }
+}
+
+/* Optimize for print */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    * {
+        background: transparent !important;
+        color: black !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+}
+
+/* Optimize focus styles */
+.btn:focus,
+.form-control:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Optimize loading states */
+.loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* Optimize modal performance */
+.modal {
+    contain: layout style paint;
+}
+
+.modal-dialog {
+    contain: layout style paint;
+}
+
+/* Optimize table performance */
+.table-responsive {
+    contain: layout style paint;
+}
+
+/* Optimize card performance */
+.card {
+    contain: layout style paint;
+    will-change: transform;
+}
+
+/* Optimize button performance */
+.btn {
+    contain: layout style paint;
+    will-change: transform;
+}
+
+/* Optimize form performance */
+.form-control {
+    contain: layout style paint;
+}
+
+/* Optimize navigation performance */
+.navbar {
+    contain: layout style paint;
+}
+
+/* Optimize sidebar performance */
+.sidebar {
+    contain: layout style paint;
+}
+
+/* Optimize dashboard performance */
+.dashboard-content {
+    contain: layout style paint;
+}
+
+/* Optimize chart performance */
+.chart-container {
+    contain: layout style paint;
+    will-change: transform;
+}
+
+/* Optimize list performance */
+.list-group {
+    contain: layout style paint;
+}
+
+.list-group-item {
+    contain: layout style paint;
+}
+
+/* Optimize grid performance */
+.row {
+    contain: layout style paint;
+}
+
+.col {
+    contain: layout style paint;
+}
+
+/* Optimize text performance */
+.text-content {
+    contain: layout style paint;
+}
+
+/* Optimize icon performance */
+.icon {
+    contain: layout style paint;
+    will-change: transform;
+}
+
+/* Optimize badge performance */
+.badge {
+    contain: layout style paint;
+}
+
+/* Optimize alert performance */
+.alert {
+    contain: layout style paint;
+}
+
+/* Optimize progress bar performance */
+.progress {
+    contain: layout style paint;
+}
+
+/* Optimize spinner performance */
+.spinner {
+    contain: layout style paint;
+    will-change: transform;
+}
+
+/* Optimize tooltip performance */
+.tooltip {
+    contain: layout style paint;
+}
+
+/* Optimize popover performance */
+.popover {
+    contain: layout style paint;
+}
+
+/* Optimize dropdown performance */
+.dropdown-menu {
+    contain: layout style paint;
+}
+
+/* Optimize accordion performance */
+.accordion {
+    contain: layout style paint;
+}
+
+.accordion-item {
+    contain: layout style paint;
+}
+
+/* Optimize carousel performance */
+.carousel {
+    contain: layout style paint;
+}
+
+.carousel-item {
+    contain: layout style paint;
+}
+
+/* Optimize pagination performance */
+.pagination {
+    contain: layout style paint;
+}
+
+/* Optimize breadcrumb performance */
+.breadcrumb {
+    contain: layout style paint;
+}
+
+/* Optimize tabs performance */
+.nav-tabs {
+    contain: layout style paint;
+}
+
+.tab-content {
+    contain: layout style paint;
+}
+
+.tab-pane {
+    contain: layout style paint;
+}
+
+/* Optimize offcanvas performance */
+.offcanvas {
+    contain: layout style paint;
+}
+
+/* Optimize toast performance */
+.toast {
+    contain: layout style paint;
+}
+
+/* Optimize collapse performance */
+.collapse {
+    contain: layout style paint;
+}
+
+/* Optimize fade performance */
+.fade {
+    contain: layout style paint;
+}
+
+/* Optimize slide performance */
+.slide {
+    contain: layout style paint;
+}
+
+/* Optimize zoom performance */
+.zoom {
+    contain: layout style paint;
+}
+
+/* Optimize scale performance */
+.scale {
+    contain: layout style paint;
+}
+
+/* Optimize rotate performance */
+.rotate {
+    contain: layout style paint;
+}
+
+/* Optimize translate performance */
+.translate {
+    contain: layout style paint;
+}
+
+/* Optimize skew performance */
+.skew {
+    contain: layout style paint;
+}
+
+/* Optimize matrix performance */
+.matrix {
+    contain: layout style paint;
+}
+
+/* Optimize perspective performance */
+.perspective {
+    contain: layout style paint;
+}
+
+/* Optimize backface-visibility performance */
+.backface-hidden {
+    backface-visibility: hidden;
+    contain: layout style paint;
+}
+
+/* Optimize transform-style performance */
+.transform-3d {
+    transform-style: preserve-3d;
+    contain: layout style paint;
+}
+
+/* Optimize transform-origin performance */
+.transform-center {
+    transform-origin: center;
+    contain: layout style paint;
+}
+
+/* Optimize transition performance */
+.transition-fast {
+    transition: all 0.15s ease-in-out;
+    contain: layout style paint;
+}
+
+.transition-normal {
+    transition: all 0.3s ease-in-out;
+    contain: layout style paint;
+}
+
+.transition-slow {
+    transition: all 0.5s ease-in-out;
+    contain: layout style paint;
+}
+
+/* Optimize animation performance */
+.animate-fast {
+    animation-duration: 0.15s;
+    contain: layout style paint;
+}
+
+.animate-normal {
+    animation-duration: 0.3s;
+    contain: layout style paint;
+}
+
+.animate-slow {
+    animation-duration: 0.5s;
+    contain: layout style paint;
+}
+
+/* Optimize hover performance */
+.hover-lift {
+    transition: transform 0.2s ease-in-out;
+    contain: layout style paint;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+}
+
+/* Optimize focus performance */
+.focus-scale {
+    transition: transform 0.2s ease-in-out;
+    contain: layout style paint;
+}
+
+.focus-scale:focus {
+    transform: scale(1.02);
+}
+
+/* Optimize active performance */
+.active-press {
+    transition: transform 0.1s ease-in-out;
+    contain: layout style paint;
+}
+
+.active-press:active {
+    transform: scale(0.98);
+}
+
+/* Optimize disabled performance */
+.disabled-opacity {
+    opacity: 0.6;
+    pointer-events: none;
+    contain: layout style paint;
+}
+
+/* Optimize loading performance */
+.loading-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading-skeleton 1.5s infinite;
+    contain: layout style paint;
+}
+
+@keyframes loading-skeleton {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Optimize placeholder performance */
+.placeholder {
+    background-color: #f8f9fa;
+    border-radius: 0.375rem;
+    contain: layout style paint;
+}
+
+/* Optimize empty state performance */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+    contain: layout style paint;
+}
+
+/* Optimize error state performance */
+.error-state {
+    text-align: center;
+    padding: 2rem;
+    color: #dc3545;
+    contain: layout style paint;
+}
+
+/* Optimize success state performance */
+.success-state {
+    text-align: center;
+    padding: 2rem;
+    color: #198754;
+    contain: layout style paint;
+}
+
+/* Optimize warning state performance */
+.warning-state {
+    text-align: center;
+    padding: 2rem;
+    color: #fd7e14;
+    contain: layout style paint;
+}
+
+/* Optimize info state performance */
+.info-state {
+    text-align: center;
+    padding: 2rem;
+    color: #0dcaf0;
+    contain: layout style paint;
+}
+
+/* Optimize primary state performance */
+.primary-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--primary);
+    contain: layout style paint;
+}
+
+/* Optimize secondary state performance */
+.secondary-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--secondary);
+    contain: layout style paint;
+}
+
+/* Optimize dark state performance */
+.dark-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--dark);
+    contain: layout style paint;
+}
+
+/* Optimize light state performance */
+.light-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--light);
+    contain: layout style paint;
+}
+
+/* Optimize white state performance */
+.white-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--white);
+    contain: layout style paint;
+}
+
+/* Optimize border state performance */
+.border-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--border);
+    contain: layout style paint;
+}
+
+/* Optimize text-muted state performance */
+.text-muted-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    contain: layout style paint;
+}
+
+/* Optimize text-dark state performance */
+.text-dark-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-dark);
+    contain: layout style paint;
+}
+
+/* Optimize shadow state performance */
+.shadow-state {
+    text-align: center;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    contain: layout style paint;
+}
+
+/* Optimize shadow-lg state performance */
+.shadow-lg-state {
+    text-align: center;
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+    contain: layout style paint;
+}
