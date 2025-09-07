@@ -242,7 +242,7 @@ function checkUserType(userId) {
                 if (currentRedirecting !== 'true') {
                     sessionStorage.setItem('isRedirecting', 'true');
                     setTimeout(() => {
-                        window.location.href = '/index.html';
+                        window.location.href = './index.html';
                     }, 100);
                 }
             }
@@ -255,7 +255,7 @@ function checkUserType(userId) {
             if (currentRedirecting !== 'true') {
                 sessionStorage.setItem('isRedirecting', 'true');
                 setTimeout(() => {
-                    window.location.href = '/index.html';
+                    window.location.href = './index.html';
                 }, 100);
             }
         });
@@ -2198,7 +2198,7 @@ function logout() {
         
         // เปลี่ยนเส้นทางไปหน้าเข้าสู่ระบบ
         setTimeout(() => {
-            window.location.href = '/index.html';
+            window.location.href = './index.html';
         }, 100);
     }).catch(function(error) {
         console.error('Error signing out:', error);
