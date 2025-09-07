@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
     sessionStorage.removeItem('isRedirecting');
     
     // Check if content sections exist
-    const dashboardContent = document.getElementById('dashboard-content');
+    const dashboardContent = document.getElementById('creditor-dashboard-content');
     const debtsContent = document.getElementById('debts-content');
     const reportsContent = document.getElementById('reports-content');
     const paymentHistoryContent = document.getElementById('payment-history-content');
@@ -2527,7 +2527,7 @@ function showDashboard() {
     });
     
     hideAllContent();
-    const dashboardContent = document.getElementById('dashboard-content');
+    const dashboardContent = document.getElementById('creditor-dashboard-content');
     if (dashboardContent) {
         dashboardContent.classList.remove('hidden');
         
@@ -4707,9 +4707,9 @@ function initializeCharts() {
 
 // Create debt status pie chart
 function createDebtStatusChart() {
-    const ctx = document.getElementById('debtStatusChart');
+    const ctx = document.getElementById('creditorDebtStatusChart');
     if (!ctx) {
-        console.error('debtStatusChart canvas element not found');
+        console.error('creditorDebtStatusChart canvas element not found');
         return;
     }
 

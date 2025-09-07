@@ -1719,7 +1719,7 @@
     <script src="../../js/auth.js?v=4.0.0"></script>
     <script src="../../js/responsive-nav.js?v=4.0.0"></script>
     <script src="../../js/responsive-table.js?v=4.0.0"></script>
-    <script src="creditor-dashboard.js?v=3.0.0"></script>
+    <script src="creditor-dashboard.js?v=4.0.0"></script>
     <script>
         // Debug logging removed for production
         
@@ -1852,7 +1852,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('../../sw.js')
                     .then(registration => {
                         // Service Worker registered successfully
                     })
