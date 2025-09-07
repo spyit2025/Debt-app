@@ -2059,9 +2059,6 @@ window.debugCheckUserData = debugCheckUserData;
 
 // ===== Chart Functions =====
 
-// ลงทะเบียน Chart.js datalabels plugin
-Chart.register(ChartDataLabels);
-
 // ตัวแปรสำหรับเก็บ charts
 let debtStatusChart = null;
 let paymentTrendChart = null;
@@ -2120,19 +2117,6 @@ function createDebtStatusChart(data) {
                             const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                             return `${label}: ${value} รายการ (${percentage}%)`;
                         }
-                    }
-                },
-                datalabels: {
-                    display: true,
-                    color: '#ffffff',
-                    font: {
-                        weight: 'bold',
-                        size: 14
-                    },
-                    formatter: function(value, context) {
-                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                        return `${value}\n(${percentage}%)`;
                     }
                 }
             }
