@@ -486,7 +486,7 @@ function loadDashboardDataInternal() {
         filteredDebtsData = [...debtsData];
         
         // Initialize filters if not already done
-        if (document.getElementById('filterDateFrom') && !document.getElementById('filterDateFrom').value) {
+        if (document.getElementById('creditorPaymentFilterDateFrom') && !document.getElementById('creditorPaymentFilterDateFrom').value) {
             initializeChartFilters();
         }
         
@@ -3149,7 +3149,7 @@ function loadAllDebts() {
     const debtsRef = window.firebaseDb.collection('debts').where('creditorId', '==', userId);
     
     debtsRef.get().then(function(querySnapshot) {
-        const debtsList = document.getElementById('allDebtsList');
+        const debtsList = document.getElementById('creditorAllDebtsList');
         
         if (querySnapshot.empty) {
             debtsList.innerHTML = `
@@ -3882,8 +3882,8 @@ function applyPaymentHistoryFilter() {
     // Get the payment history filterDebtor element
     const debtorFilterElement = document.getElementById('filterDebtorPayment');
     const debtorFilter = debtorFilterElement ? debtorFilterElement.value : '';
-    const dateFrom = document.getElementById('filterDateFrom').value;
-    const dateTo = document.getElementById('filterDateTo').value;
+    const dateFrom = document.getElementById('creditorPaymentFilterDateFrom').value;
+    const dateTo = document.getElementById('creditorPaymentFilterDateTo').value;
     const amountFilter = document.getElementById('filterAmount').value;
     
     // Filter data
@@ -3947,8 +3947,8 @@ function clearPaymentHistoryFilter() {
     const debtorFilter = document.getElementById('filterDebtorPayment');
     if (debtorFilter) debtorFilter.value = '';
     
-    document.getElementById('filterDateFrom').value = '';
-    document.getElementById('filterDateTo').value = '';
+    document.getElementById('creditorPaymentFilterDateFrom').value = '';
+    document.getElementById('creditorPaymentFilterDateTo').value = '';
     document.getElementById('filterAmount').value = '';
     
     // Reset filtered data to all data
@@ -5018,8 +5018,8 @@ function initializeChartFilters() {
     const today = new Date();
     const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 6, 1);
     
-    document.getElementById('filterDateFrom').value = sixMonthsAgo.toISOString().split('T')[0];
-    document.getElementById('filterDateTo').value = today.toISOString().split('T')[0];
+    document.getElementById('creditorPaymentFilterDateFrom').value = sixMonthsAgo.toISOString().split('T')[0];
+    document.getElementById('creditorPaymentFilterDateTo').value = today.toISOString().split('T')[0];
 }
 
 // Load debtor options for filter
@@ -5070,8 +5070,8 @@ function loadDebtorFilterOptions() {
 function applyChartFilters() {
     try {
         // Get filter values
-        currentFilters.dateFrom = document.getElementById('filterDateFrom').value;
-        currentFilters.dateTo = document.getElementById('filterDateTo').value;
+        currentFilters.dateFrom = document.getElementById('creditorPaymentFilterDateFrom').value;
+        currentFilters.dateTo = document.getElementById('creditorPaymentFilterDateTo').value;
         currentFilters.status = document.getElementById('filterStatus').value;
         currentFilters.amountRange = document.getElementById('filterAmountRange').value;
         
@@ -5133,8 +5133,8 @@ function applyChartFilters() {
 function clearChartFilters() {
     try {
         // Reset filter inputs
-        document.getElementById('filterDateFrom').value = '';
-        document.getElementById('filterDateTo').value = '';
+        document.getElementById('creditorPaymentFilterDateFrom').value = '';
+        document.getElementById('creditorPaymentFilterDateTo').value = '';
         document.getElementById('filterStatus').value = '';
         document.getElementById('filterAmountRange').value = '';
         
