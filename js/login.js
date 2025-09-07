@@ -18,19 +18,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if user is already logged in
     const userId = localStorage.getItem('userId');
     const userType = localStorage.getItem('userType');
+    const isRedirecting = sessionStorage.getItem('isRedirecting');
     
-    if (userId && userType) {
-        // Set redirect flag before redirecting
-        sessionStorage.setItem('isRedirecting', 'true');
+    // ป้องกัน redirect loop โดยตรวจสอบว่ากำลัง redirect อยู่แล้วหรือไม่
+    if (userId && userType && isRedirecting !== 'true') {
+        // ตรวจสอบว่าอยู่ในหน้า login แล้วหรือไม่
+        const currentPage = window.location.pathname;
+        const isOnLoginPage = currentPage.includes('index.html') || currentPage.includes('login');
         
-        // Redirect to appropriate dashboard with delay
-        setTimeout(() => {
+        if (isOnLoginPage) {
+            // Set redirect flag before redirecting
+            sessionStorage.setItem('isRedirecting', 'true');
+            
+            // Redirect to appropriate dashboard immediately
             if (userType === 'creditor') {
-                window.location.replace('pages/dashboard/creditor-dashboard.html');
+                window.location.replace('/pages/dashboard/creditor-dashboard.html');
             } else if (userType === 'debtor') {
-                window.location.replace('pages/dashboard/debtor-dashboard.html');
+                window.location.replace('/pages/dashboard/debtor-dashboard.html');
             }
-        }, 100);
+        }
     }
     
     // Initialize event listeners
@@ -90,16 +96,12 @@ async function handleLogin(e) {
     }
     
     // Check for test credentials first
-    console.log('Checking credentials:', email, password);
     const testCredentials = {
         'creditor@test.com': { type: 'creditor', name: 'เก่งกาจ มิ่งมงคลจำรัส' },
         'debtor@test.com': { type: 'debtor', name: 'ทินกร ตาอิน' }
     };
     
-    console.log('Test credentials check:', testCredentials[email], password === '123456');
-    
     if (testCredentials[email] && password === '123456') {
-        console.log('Using test mode login for:', email);
         // Use test mode login
         const user = testCredentials[email];
         
@@ -125,12 +127,17 @@ async function handleLogin(e) {
         
         // Redirect after delay
         setTimeout(() => {
-            if (user.type === 'creditor') {
-                window.location.href = 'pages/dashboard/creditor-dashboard.html';
-            } else {
-                window.location.href = 'pages/dashboard/debtor-dashboard.html';
+            // ตรวจสอบว่ากำลัง redirect อยู่แล้วหรือไม่
+            const currentRedirecting = sessionStorage.getItem('isRedirecting');
+            if (currentRedirecting !== 'true') {
+                sessionStorage.setItem('isRedirecting', 'true');
+                if (user.type === 'creditor') {
+                    window.location.replace('/pages/dashboard/creditor-dashboard.html');
+                } else {
+                    window.location.replace('/pages/dashboard/debtor-dashboard.html');
+                }
             }
-        }, 1000);
+        }, 100);
         
         setLoadingState(false);
         return;
@@ -142,7 +149,7 @@ async function handleLogin(e) {
         return;
     }
     
-    console.log('Proceeding to Firebase authentication for:', email);
+    // Proceeding to Firebase authentication
     
     // Show loading state
     setLoadingState(true);
@@ -165,24 +172,26 @@ async function handleLogin(e) {
             
             // Redirect to appropriate dashboard based on userType from database
             setTimeout(() => {
-                // Set redirect flag to prevent redirect loop
-                sessionStorage.setItem('isRedirecting', 'true');
-                
-                const userType = result.userData.userType;
-                if (userType === 'creditor') {
-                    window.location.replace('pages/dashboard/creditor-dashboard.html');
-                } else if (userType === 'debtor') {
-                    window.location.replace('pages/dashboard/debtor-dashboard.html');
-                } else {
-                    showAlert('ไม่พบประเภทผู้ใช้ในระบบ กรุณาติดต่อผู้ดูแลระบบ', 'danger');
+                // ตรวจสอบว่ากำลัง redirect อยู่แล้วหรือไม่
+                const currentRedirecting = sessionStorage.getItem('isRedirecting');
+                if (currentRedirecting !== 'true') {
+                    // Set redirect flag to prevent redirect loop
+                    sessionStorage.setItem('isRedirecting', 'true');
+                    
+                    const userType = result.userData.userType;
+                    if (userType === 'creditor') {
+                        window.location.replace('/pages/dashboard/creditor-dashboard.html');
+                    } else if (userType === 'debtor') {
+                        window.location.replace('/pages/dashboard/debtor-dashboard.html');
+                    } else {
+                        showAlert('ไม่พบประเภทผู้ใช้ในระบบ กรุณาติดต่อผู้ดูแลระบบ', 'danger');
+                        sessionStorage.removeItem('isRedirecting'); // รีเซ็ต flag เมื่อเกิดข้อผิดพลาด
+                    }
                 }
-            }, 1000);
+            }, 100);
         }
     } catch (error) {
         console.error('Login error:', error);
-        console.error('Error code:', error.code);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
         
         // Handle specific error types
         let errorMessage;

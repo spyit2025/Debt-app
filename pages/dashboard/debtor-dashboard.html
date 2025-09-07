@@ -4,13 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <meta name="description" content="แดชบอร์ดลูกหนี้ - ระบบจัดการหนี้">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
+    
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdn.datatables.net https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;
+        style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;
+        font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+        img-src 'self' data: blob: https:;
+        connect-src 'self' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdn.datatables.net https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        frame-src 'none';
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+    ">
     <title>ระบบจัดการหนี้ - แดชบอร์ดลูกหนี้</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -29,12 +44,12 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../../css/style.css?v=1.0">
-    <link rel="stylesheet" href="../../css/login.css?v=1.0">
-    <link rel="stylesheet" href="../../css/dashboard-styles.css?v=1.0">
-    <link rel="stylesheet" href="../../css/debtor-dashboard.css?v=1.0">
-    <link rel="stylesheet" href="../../css/performance.css?v=1.0">
-    <link rel="stylesheet" href="../../css/mobile-chrome-fix.css?v=2.2.0">
+    <link rel="stylesheet" href="/css/style.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/login.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/dashboard-styles.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/debtor-dashboard.css">
+    <link rel="stylesheet" href="/css/performance.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/mobile-chrome-fix.css?v=4.0.0">
     
     <style>
         .dashboard-header {
@@ -84,10 +99,10 @@
             }
             
             .dashboard-header .badge,
-            .notification-badge-mobile {
+            /* .notification-badge-mobile {
                 font-size: 0.5rem !important;
                 padding: 0.2em 0.4em;
-            }
+            } */ /* Removed - notifications not used */
             
             /* Mobile menu button styling */
             .dashboard-header .btn-outline-light {
@@ -401,8 +416,8 @@
             min-height: 400px;
         }
         
-        /* Notification popup animation */
-        @keyframes slideIn {
+        /* Notification popup animation - Removed - notifications not used */
+        /* @keyframes slideIn {
             from {
                 transform: translateX(100%);
                 opacity: 0;
@@ -415,7 +430,7 @@
         
         .notification-popup {
             animation: slideIn 0.3s ease-out;
-        }
+        } */
         
         /* DataTables Custom Styling */
         .dataTables_wrapper .dataTables_length,
@@ -817,7 +832,7 @@
                     </nav>
                 </div>
                 
-                <!-- Right Side - Notifications and User Info -->
+                <!-- Right Side - User Info -->
                 <div class="col-6 col-lg-3 text-end">
                     <div class="d-flex align-items-center justify-content-end">
                         
@@ -885,7 +900,7 @@
             <!-- Main Content -->
             <div class="col-12 main-content">
                 <!-- Dashboard Content -->
-                <div id="dashboard-content">
+                <div id="debtor-dashboard-content">
                     <!-- Stats Cards -->
                     <div class="row mb-4">
                         <div class="col-md-3">
@@ -895,6 +910,10 @@
                                 </div>
                                 <h3 class="h4 mb-1">฿<span id="debtorTotalDebt">0</span></h3>
                                 <p class="text-muted mb-0">ยอดหนี้รวม</p>
+                                <small class="text-muted d-block mt-1">
+                                    เงินต้น: ฿<span id="totalPrincipal">0</span><br>
+                                    ดอกเบี้ย: ฿<span id="totalInterest">0</span>
+                                </small>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -904,6 +923,9 @@
                                 </div>
                                 <h3 class="h4 mb-1">฿<span id="paidAmount">0</span></h3>
                                 <p class="text-muted mb-0">ชำระแล้ว</p>
+                                <small class="text-muted d-block mt-1">
+                                    งวดที่ชำระแล้ว: <span id="paidInstallments">0</span> งวด
+                                </small>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -913,6 +935,9 @@
                                 </div>
                                 <h3 class="h4 mb-1"><span id="debtorPendingDebts">0</span></h3>
                                 <p class="text-muted mb-0">หนี้ที่รอชำระ</p>
+                                <small class="text-muted d-block mt-1">
+                                    งวดที่เหลือ: <span id="remainingInstallments">0</span> งวด
+                                </small>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -922,6 +947,9 @@
                                 </div>
                                 <h3 class="h4 mb-1"><span id="debtorOverdueDebts">0</span></h3>
                                 <p class="text-muted mb-0">หนี้ที่เกินกำหนด</p>
+                                <small class="text-muted d-block mt-1">
+                                    งวดทั้งหมด: <span id="totalInstallments">0</span> งวด
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -935,7 +963,7 @@
                                     สถานะหนี้
                                 </h5>
                                 <div class="chart-container">
-                                    <canvas id="debtStatusChart"></canvas>
+                                    <canvas id="debtorDebtStatusChart"></canvas>
                                     <div id="debtStatusLoading" class="text-center py-4">
                                         <div class="spinner-border text-primary" role="status">
                                             <span class="visually-hidden">กำลังโหลด...</span>
@@ -1008,11 +1036,12 @@
                                         <table id="debtsTable" class="table table-hover">
                                             <thead class="table-light">
                                                 <tr>
-                                                    <th>เจ้าหนี้</th>
+                                                    <th>รหัสลูกหนี้</th>
                                                     <th>คำอธิบาย</th>
                                                     <th>สถานะ</th>
                                                     <th class="text-end">จำนวนเงิน</th>
                                                     <th class="text-end">วันครบกำหนด</th>
+                                                    <th class="text-center">รายละเอียด</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="debtsTableBody">
@@ -1023,7 +1052,7 @@
                                 </div>
                                 
                                 <!-- Mobile Card View -->
-                                <div class="d-lg-none" id="allDebtsList">
+                                <div class="d-lg-none" id="debtorAllDebtsList">
                                     <!-- All debt items will be loaded here for mobile -->
                                 </div>
                             </div>
@@ -1058,7 +1087,7 @@
                                                     <th class="text-end">วันที่ชำระ</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="paymentHistoryTableBody">
+                                            <tbody id="debtorPaymentHistoryTableBody">
                                                 <!-- Data will be loaded here -->
                                             </tbody>
                                         </table>
@@ -1075,7 +1104,7 @@
                 </div>
 
                 <!-- Settings Content -->
-                <div id="settings-content">
+                <div id="debtor-settings-content">
                     <div class="row">
                         <div class="col-12">
                             <div class="stats-card">
@@ -1117,11 +1146,11 @@
     </div>
 
     <!-- Payment History Modal -->
-    <div class="modal fade" id="installmentPaymentModal" tabindex="-1" aria-labelledby="installmentPaymentModalLabel" aria-hidden="true">
+    <div class="modal fade" id="debtorInstallmentPaymentModal" tabindex="-1" aria-labelledby="debtorInstallmentPaymentModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="installmentPaymentModalLabel">
+                    <h5 class="modal-title" id="debtorInstallmentPaymentModalLabel">
                         <i class="fas fa-history me-2"></i>ประวัติการชำระหนี้
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1134,27 +1163,27 @@
                                 <div class="card-body">
                                     <div class="row mb-2">
                                         <div class="col-6"><strong>ยอดรวม:</strong></div>
-                                        <div class="col-6" id="modalTotalAmount">฿0</div>
+                                        <div class="col-6" id="paymentModalTotalAmount">฿0</div>
                                     </div>
                                     <div class="row mb-2">
                                         <div class="col-6"><strong>ผ่อนเดือนละ:</strong></div>
-                                        <div class="col-6" id="modalMonthlyPayment">฿0</div>
+                                        <div class="col-6" id="debtorModalMonthlyPayment">฿0</div>
                                     </div>
                                     <div class="row mb-2">
                                         <div class="col-6"><strong>จำนวนงวด:</strong></div>
-                                        <div class="col-6" id="modalTotalInstallments">0 งวด</div>
+                                        <div class="col-6" id="debtorModalTotalInstallments">0 งวด</div>
                                     </div>
                                     <div class="row mb-2">
                                         <div class="col-6"><strong>ชำระแล้ว:</strong></div>
-                                        <div class="col-6" id="modalPaidInstallments">0 งวด</div>
+                                        <div class="col-6" id="debtorModalPaidInstallments">0 งวด</div>
                                     </div>
                                     <div class="row mb-2">
                                         <div class="col-6"><strong>เหลือ:</strong></div>
-                                        <div class="col-6" id="modalRemainingInstallments">0 งวด</div>
+                                        <div class="col-6" id="debtorModalRemainingInstallments">0 งวด</div>
                                     </div>
                                     <div class="row mb-2">
                                         <div class="col-6"><strong>ยอดคงเหลือ:</strong></div>
-                                        <div class="col-6" id="modalRemainingAmount">฿0</div>
+                                        <div class="col-6" id="paymentModalRemainingAmount">฿0</div>
                                     </div>
                                 </div>
                             </div>
@@ -1213,6 +1242,116 @@
         </div>
     </div>
 
+    <!-- Debt Details Modal -->
+    <div class="modal fade" id="debtDetailsModal" tabindex="-1" aria-labelledby="debtDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="debtDetailsModalLabel">
+                        <i class="fas fa-info-circle me-2"></i>รายละเอียดหนี้
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">ข้อมูลหนี้</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>เจ้าหนี้:</strong></div>
+                                        <div class="col-6" id="modalCreditorName">-</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>คำอธิบาย:</strong></div>
+                                        <div class="col-6" id="modalDescription">-</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>สถานะ:</strong></div>
+                                        <div class="col-6" id="modalStatus">-</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>วันที่สร้าง:</strong></div>
+                                        <div class="col-6" id="modalCreatedDate">-</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>วันครบกำหนด:</strong></div>
+                                        <div class="col-6" id="modalDueDate">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">รายละเอียดทางการเงิน</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>เงินต้น:</strong></div>
+                                        <div class="col-6" id="modalPrincipal">฿0</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>อัตราดอกเบี้ย:</strong></div>
+                                        <div class="col-6" id="modalInterestRate">-</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>ดอกเบี้ย:</strong></div>
+                                        <div class="col-6" id="modalInterest">฿0</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>ยอดรวม:</strong></div>
+                                        <div class="col-6" id="modalTotalAmount">฿0</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>ชำระแล้ว:</strong></div>
+                                        <div class="col-6" id="modalPaidAmount">฿0</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>ยอดคงเหลือ:</strong></div>
+                                        <div class="col-6" id="modalRemainingAmount">฿0</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-primary mb-3">ข้อมูลเพิ่มเติม</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>ประเภทการชำระ:</strong></div>
+                                        <div class="col-6" id="modalPaymentType">-</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>จำนวนงวด:</strong></div>
+                                        <div class="col-6" id="modalInstallments">-</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>งวดละ:</strong></div>
+                                        <div class="col-6" id="debtorModalMonthlyPaymentDetail">-</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>หมายเหตุ:</strong></div>
+                                        <div class="col-6" id="modalNotes">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-end align-items-center">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>ปิด
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -1226,7 +1365,7 @@
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
     
     <!-- DataTables Initialization -->
-    <script src="../../js/datatables-init.js?v=2.1.0"></script>
+    <script src="/js/datatables-init.js?v=2.1.0"></script>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
@@ -1234,20 +1373,25 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     
     <!-- Custom JS -->
-    <script src="../../js/performance.js?v=1.0"></script>
-    <script src="../../js/error-handler.js?v=1.0"></script>
-    <script src="../../js/firebase-config.js?v=1.0"></script>
-    <script src="../../js/firebase-utils.js?v=1.0"></script>
-    <script src="../../js/security-utils.js?v=1.0"></script>
-    <script src="../../js/alert-utils.js?v=1.0"></script>
-    <script src="../../js/auth.js?v=1.0"></script>
-    <script src="debtor-dashboard.js?v=1.0"></script>
+    <script src="/js/performance.js?v=4.0.0"></script>
+    <script src="/js/error-handler.js?v=4.0.0"></script>
+    <script src="/js/logger.js?v=4.0.0"></script>
+    <script src="/js/firebase-config.js?v=4.0.0"></script>
+    <script src="/js/firebase-utils.js?v=4.0.0"></script>
+    <script src="/js/security-utils.js?v=4.0.0"></script>
+    <script src="/js/alert-utils.js?v=4.0.0"></script>
+    <script src="/js/auth.js?v=4.0.0"></script>
+    <script src="/js/login.js?v=4.0.0"></script>
+    <script src="/js/responsive-nav.js?v=4.0.0"></script>
+    <script src="debtor-dashboard.js"></script>
     
     <script>
-        // Function to confirm logout with notification
+        // Debug logging removed for production
+        
+        // Function to confirm logout
         function confirmLogout() {
             if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
-                // Show success notification before logout
+                // Show success message before logout
                 if (typeof showToast === 'function') {
                     showToast('กำลังออกจากระบบ...', 'info');
                 }
@@ -1283,6 +1427,9 @@
         
         // Start observing when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // ล้าง redirect flag เมื่อโหลดหน้า dashboard
+            sessionStorage.removeItem('isRedirecting');
+            
             const userNameElement = document.getElementById('userName');
             if (userNameElement) {
                 observer.observe(userNameElement, {
@@ -1385,6 +1532,21 @@
             if (targetSection) {
                 targetSection.style.display = 'block';
             }
+        }
+    </script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        // Service Worker registered successfully
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
         }
     </script>
 </body>

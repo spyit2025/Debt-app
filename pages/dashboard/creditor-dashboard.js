@@ -4,6 +4,34 @@ let dashboardCurrentUser = null;
 let isDataLoaded = false;
 let isRedirecting = false;
 
+// ฟังก์ชันแปลงรหัสลูกหนี้ให้อ่านง่าย
+function formatDebtorId(debtorId) {
+    if (!debtorId || debtorId === 'ไม่ระบุรหัสลูกหนี้') {
+        return '<small class="text-muted">ไม่ระบุรหัสลูกหนี้</small>';
+    }
+    
+    // ถ้าเป็น Firebase UID (ยาว 28 ตัวอักษร) ให้แปลงเป็นรูปแบบที่อ่านง่าย
+    if (debtorId.length === 28) {
+        // ใช้ 6 ตัวอักษรแรก + 4 ตัวอักษรท้าย + หมายเลขที่คำนวณจาก UID
+        const prefix = debtorId.substring(0, 6);
+        const suffix = debtorId.substring(24, 28);
+        
+        // สร้างหมายเลขที่สม่ำเสมอจาก UID โดยใช้ charCodeAt
+        let hash = 0;
+        for (let i = 0; i < debtorId.length; i++) {
+            const char = debtorId.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        const consistentNum = Math.abs(hash % 9999).toString().padStart(4, '0');
+        
+        return `<small class="text-muted">D${prefix}-${consistentNum}</small>`;
+    }
+    
+    // ถ้าไม่ใช่ Firebase UID ให้แสดงตามเดิม
+    return `<small class="text-muted">${debtorId}</small>`;
+}
+
 // Chart instances
 let debtStatusChart = null;
 let monthlyDebtChart = null;
@@ -61,6 +89,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check authentication
     checkAuth();
     
+    // Add event listener for installment months to auto-calculate due date
+    setupInstallmentMonthsListener();
+    
+    // Add event listener for payment date to show example
+    setupPaymentDateListener();
+    
     // Set up event listeners
     setupEventListeners();
     
@@ -87,6 +121,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.deleteDebt = deleteDebt;
     window.deletePaymentRecord = deletePaymentRecord;
     window.markDebtFullyPaid = markDebtFullyPaid;
+    window.addNewDebt = addNewDebt;
+    window.submitNewDebt = submitNewDebt;
     window.showInstallmentPaymentModal = showInstallmentPaymentModal;
     window.recordInstallmentPayment = recordInstallmentPayment;
     window.showPaymentHistory = showPaymentHistory;
@@ -97,9 +133,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.downloadPaymentHistoryReport = downloadPaymentHistoryReport;
     window.changePaymentHistoryPage = changePaymentHistoryPage;
     window.closeAddDebtModal = closeAddDebtModal;
-    window.viewPaymentDetails = viewPaymentDetails;
-    window.showPaymentDetailsModal = showPaymentDetailsModal;
-    window.hidePaymentDetailsModal = hidePaymentDetailsModal;
     
     // Initialize modal accessibility
     initializeModalAccessibility();
@@ -124,6 +157,98 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
 });
 
+// Setup event listener for installment months to auto-calculate due date
+function setupInstallmentMonthsListener() {
+    const installmentMonthsInput = document.getElementById('installmentMonths');
+    const dueDateInput = document.getElementById('dueDate');
+    
+    if (installmentMonthsInput && dueDateInput) {
+        installmentMonthsInput.addEventListener('input', function() {
+            const months = parseInt(this.value);
+            if (months && months > 0) {
+                // Calculate due date from today + number of months
+                const today = new Date();
+                const dueDate = new Date(today);
+                dueDate.setMonth(dueDate.getMonth() + months);
+                
+                // Format date as YYYY-MM-DD for input type="date"
+                const formattedDate = dueDate.toISOString().split('T')[0];
+                dueDateInput.value = formattedDate;
+            }
+        });
+    }
+}
+
+// Helper function to get the last day of a month
+function getLastDayOfMonth(year, month) {
+    return new Date(year, month + 1, 0).getDate();
+}
+
+// Helper function to get the actual payment date for a given month
+function getActualPaymentDate(paymentDay, year, month) {
+    const lastDay = getLastDayOfMonth(year, month);
+    return Math.min(paymentDay, lastDay);
+}
+
+// Helper function to format payment date display
+function formatPaymentDateDisplay(paymentDay) {
+    if (!paymentDay) return '';
+    
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    
+    const actualDate = getActualPaymentDate(paymentDay, currentYear, currentMonth);
+    const lastDay = getLastDayOfMonth(currentYear, currentMonth);
+    
+    if (actualDate === lastDay && paymentDay > lastDay) {
+        return `วันที่ ${actualDate} (วันสุดท้ายของเดือน)`;
+    } else {
+        return `วันที่ ${actualDate}`;
+    }
+}
+
+// Setup event listener for payment date to show example
+function setupPaymentDateListener() {
+    const paymentDateInput = document.getElementById('paymentDate');
+    const paymentDateExample = document.getElementById('paymentDateExample');
+    
+    if (paymentDateInput && paymentDateExample) {
+        paymentDateInput.addEventListener('input', function() {
+            const paymentDay = parseInt(this.value);
+            if (paymentDay && paymentDay >= 1 && paymentDay <= 31) {
+                // Show examples for different months
+                const examples = [];
+                
+                // February (28/29 days)
+                const febDate = getActualPaymentDate(paymentDay, 2025, 1); // February is month 1 (0-indexed)
+                if (febDate < paymentDay) {
+                    examples.push(`กุมภาพันธ์: วันที่ ${febDate} (วันสุดท้าย)`);
+                }
+                
+                // April (30 days)
+                const aprDate = getActualPaymentDate(paymentDay, 2025, 3); // April is month 3 (0-indexed)
+                if (aprDate < paymentDay) {
+                    examples.push(`เมษายน: วันที่ ${aprDate} (วันสุดท้าย)`);
+                }
+                
+                // Regular month (31 days)
+                if (paymentDay <= 31) {
+                    examples.push(`มกราคม: วันที่ ${paymentDay}`);
+                }
+                
+                if (examples.length > 0) {
+                    paymentDateExample.textContent = `ตัวอย่าง: ${examples.join(', ')}`;
+                } else {
+                    paymentDateExample.textContent = `ตัวอย่าง: ทุกเดือนจะชำระวันที่ ${paymentDay}`;
+                }
+            } else {
+                paymentDateExample.textContent = '';
+            }
+        });
+    }
+}
+
 // Check if user is authenticated and is a creditor
 function checkAuth() {
     // Check if Firebase is initialized
@@ -145,33 +270,49 @@ function checkAuth() {
         return;
     }
     
-    window.firebaseAuth.onAuthStateChanged(function(user) {
+    // Wait for Firebase to be ready before checking auth state
+    let authCheckAttempts = 0;
+    const maxAuthCheckAttempts = 10;
+    
+    function waitForAuthReady() {
+        authCheckAttempts++;
         
-                    if (user) {
-                // User is logged in
-                if (user.uid !== dashboardCurrentUser?.uid) {
-                    dashboardCurrentUser = user;
-                    isDataLoaded = false; // Reset data loaded flag for new user
-                    // Check if user is a creditor
-                    checkUserType(user.uid);
-                    
-                    // Load dashboard data immediately for new user
-                    loadDashboardData();
+        // Check if Firebase Auth is ready
+        if (window.firebaseAuth.currentUser !== undefined || authCheckAttempts >= maxAuthCheckAttempts) {
+            // Firebase Auth is ready or we've tried enough times
+            window.firebaseAuth.onAuthStateChanged(function(user) {
+                if (user) {
+                    // User is logged in
+                    if (user.uid !== dashboardCurrentUser?.uid) {
+                        dashboardCurrentUser = user;
+                        isDataLoaded = false; // Reset data loaded flag for new user
+                        // Check if user is a creditor
+                        checkUserType(user.uid);
+                        
+                        // Load dashboard data immediately for new user
+                        loadDashboardData();
+                    }
+                } else {
+                    // No user logged in
+                    dashboardCurrentUser = null;
+                    isDataLoaded = false;
+                    // Only redirect if not already redirecting and not on login page
+                    const isRedirecting = sessionStorage.getItem('isRedirecting');
+                    if (!isRedirecting && !window.location.pathname.includes('index.html')) {
+                        sessionStorage.setItem('isRedirecting', 'true');
+                        setTimeout(() => {
+                            window.location.href = '../../index.html';
+                        }, 100);
+                    }
                 }
-            } else {
-            // No user logged in
-            dashboardCurrentUser = null;
-            isDataLoaded = false;
-            // Only redirect if not already redirecting and not on login page
-            const isRedirecting = sessionStorage.getItem('isRedirecting');
-            if (!isRedirecting && !window.location.pathname.includes('index.html')) {
-                sessionStorage.setItem('isRedirecting', 'true');
-                setTimeout(() => {
-                    window.location.href = '../../index.html';
-                }, 100);
-            }
+            });
+        } else {
+            // Firebase Auth not ready yet, wait a bit more
+            setTimeout(waitForAuthReady, 200);
         }
-    });
+    }
+    
+    waitForAuthReady();
 }
 
 // Check user type from Firestore
@@ -354,15 +495,13 @@ function loadDashboardDataInternal() {
         
         // If no debts data, show message in debtor filter
         if (debtsData.length === 0) {
+            // No debts found for this creditor
             // Ensure debtor filter shows appropriate message
             loadDebtorFilterOptions();
         }
         
         // Update charts with the data
         updateCharts(filteredDebtsData);
-        
-        // Load payment history data
-        loadPaymentHistory();
     }).catch(function(error) {
         console.error('Error loading dashboard data:', error);
         // Set default values on error
@@ -408,6 +547,9 @@ function loadUserDebts(userId) {
             debtsList.innerHTML = `
                 <div class="debt-item">
                     <div class="row align-items-center">
+                        <div class="col-md-1">
+                            <small class="text-muted">-</small>
+                        </div>
                         <div class="col-md-2">
                             <h6 class="mb-1">ยังไม่มีข้อมูล</h6>
                             <small class="text-muted">เริ่มต้นเพิ่มหนี้ใหม่</small>
@@ -424,7 +566,7 @@ function loadUserDebts(userId) {
                         <div class="col-md-2 text-end">
                             <small class="text-muted">-</small>
                         </div>
-                        <div class="col-md-2 text-end">
+                        <div class="col-md-1 text-end">
                             <button class="btn btn-sm btn-outline-primary" disabled>
                                 <i class="fas fa-eye me-1"></i>ดูรายละเอียด
                             </button>
@@ -465,6 +607,66 @@ function loadUserDebts(userId) {
     });
 }
 
+// Generate readable debt code
+function generateDebtCode(debtId, debt) {
+    // Get creation date - handle both Firestore Timestamp and regular Date
+    let createdDate;
+    if (debt.createdAt) {
+        if (debt.createdAt.toDate && typeof debt.createdAt.toDate === 'function') {
+            // Firestore Timestamp
+            createdDate = new Date(debt.createdAt.toDate());
+        } else if (debt.createdAt instanceof Date) {
+            // Regular Date object
+            createdDate = debt.createdAt;
+        } else {
+            // String or other format
+            createdDate = new Date(debt.createdAt);
+        }
+    } else {
+        createdDate = new Date();
+    }
+    
+    const year = createdDate.getFullYear() + 543; // Convert to Buddhist year
+    const month = String(createdDate.getMonth() + 1).padStart(2, '0');
+    
+    // Get first 2 characters of debtId for uniqueness
+    const uniqueId = debtId.substring(0, 2).toUpperCase();
+    
+    // Generate sequential number (using last 4 characters of debtId as number)
+    const sequentialNum = parseInt(debtId.substring(debtId.length - 4), 36) % 9999 + 1;
+    
+    return `D${year}${month}-${String(sequentialNum).padStart(4, '0')}`;
+}
+
+// Generate readable payment code
+function generatePaymentCode(paymentId, paymentData) {
+    // Get payment date - handle both Firestore Timestamp and regular Date
+    let paymentDate;
+    if (paymentData.paymentDate) {
+        if (paymentData.paymentDate.toDate && typeof paymentData.paymentDate.toDate === 'function') {
+            // Firestore Timestamp
+            paymentDate = new Date(paymentData.paymentDate.toDate());
+        } else if (paymentData.paymentDate instanceof Date) {
+            // Regular Date object
+            paymentDate = paymentData.paymentDate;
+        } else {
+            // String or other format
+            paymentDate = new Date(paymentData.paymentDate);
+        }
+    } else {
+        paymentDate = new Date();
+    }
+    
+    const year = paymentDate.getFullYear() + 543; // Convert to Buddhist year
+    const month = String(paymentDate.getMonth() + 1).padStart(2, '0');
+    const day = String(paymentDate.getDate()).padStart(2, '0');
+    
+    // Generate sequential number (using last 4 characters of paymentId as number)
+    const sequentialNum = parseInt(paymentId.substring(paymentId.length - 4), 36) % 9999 + 1;
+    
+    return `P${year}${month}${day}-${String(sequentialNum).padStart(4, '0')}`;
+}
+
 // Create debt item element
 function createDebtItem(debtId, debt) {
     const debtItem = document.createElement('div');
@@ -486,15 +688,16 @@ function createDebtItem(debtId, debt) {
     // Format last updated date
     const updatedDate = debt.updatedAt ? new Date(debt.updatedAt.toDate()).toLocaleDateString('th-TH') : '-';
     
+    // Generate readable debt code
+    const debtCode = generateDebtCode(debtId, debt);
+    
     debtItem.innerHTML = `
         <div class="row align-items-center">
             <div class="col-md-1">
-                <div class="user-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
+                <small class="text-muted">${debtCode}</small>
             </div>
             <div class="col-md-2">
-                <h6 class="mb-1">${debt.debtorName || 'ไม่ระบุชื่อ'}</h6>
+                <h6 class="mb-1">${formatDebtorId(debt.debtorId || 'ไม่ระบุรหัสลูกหนี้')}</h6>
                 <small class="text-muted">${debt.description || 'ไม่มีคำอธิบาย'}</small>
                 ${interestInfo}
             </div>
@@ -510,9 +713,6 @@ function createDebtItem(debtId, debt) {
             </div>
             <div class="col-md-2 text-end">
                 <small class="text-muted">${createdDate}</small>
-            </div>
-            <div class="col-md-1 text-end">
-                <small class="text-muted">${updatedDate}</small>
             </div>
             <div class="col-md-1 text-end">
                 <button class="btn btn-sm btn-outline-primary me-1" onclick="editDebt('${debtId}')">
@@ -1121,59 +1321,6 @@ function createInstallmentPaymentModal() {
     return modal;
 }
 
-// Record installment payment from modal (for demo/testing purposes)
-function recordInstallmentPaymentFromModal() {
-    // Get form values
-    const paymentAmount = parseFloat(document.getElementById('paymentAmount')?.value || 0);
-    const paymentDate = document.getElementById('paymentDate')?.value;
-    const paymentTime = document.getElementById('paymentTime')?.value;
-    const paymentNote = document.getElementById('paymentNote')?.value || '';
-    
-    // Validate inputs
-    if (!paymentAmount || paymentAmount <= 0) {
-        showWarning('กรุณากรอกจำนวนเงินที่ชำระ');
-        return;
-    }
-    
-    if (!paymentDate) {
-        showWarning('กรุณาเลือกวันที่ชำระ');
-        return;
-    }
-    
-    if (!paymentTime) {
-        showWarning('กรุณาเลือกเวลาชำระ');
-        return;
-    }
-    
-    // Create payment record
-    const paymentDateTime = new Date(paymentDate + 'T' + paymentTime);
-    const paymentRecord = {
-        amount: paymentAmount,
-        date: paymentDateTime,
-        note: paymentNote,
-        timestamp: new Date(),
-        installmentNumber: 1 // Default to 1 for demo
-    };
-    
-    // Show success message
-    showSuccess(`บันทึกการชำระ ฿${paymentAmount.toFixed(2)} เรียบร้อยแล้ว`);
-    
-    // Close modal
-    const modal = document.getElementById('installmentPaymentModal');
-    if (modal) {
-        const bootstrapModal = bootstrap.Modal.getInstance(modal);
-        if (bootstrapModal) {
-            bootstrapModal.hide();
-        }
-    }
-    
-    // Log payment record for debugging
-    console.log('Payment recorded:', paymentRecord);
-}
-
-// Make function globally available
-window.recordInstallmentPaymentFromModal = recordInstallmentPaymentFromModal;
-
 // Populate installment payment modal
 function populateInstallmentPaymentModal(debtId, debtData) {
     const modal = document.getElementById('installmentPaymentModal');
@@ -1363,16 +1510,16 @@ function recordInstallmentPayment(debtId, debtData) {
     }
     
     // Calculate new values
-    const currentRemainingAmount = (debtData && debtData.remainingAmount) || (debtData && debtData.totalAmount) || (debtData && debtData.amount) || 0;
+    const currentRemainingAmount = debtData.remainingAmount || debtData.totalAmount || debtData.amount || 0;
     const newRemainingAmount = Math.max(0, currentRemainingAmount - paymentAmount);
-    const currentPaidInstallments = (debtData && debtData.paidInstallments) || 0;
+    const currentPaidInstallments = debtData.paidInstallments || 0;
     const newPaidInstallments = currentPaidInstallments + 1;
     
     // Determine new status
-    let newStatus = (debtData && debtData.status) || 'pending';
+    let newStatus = debtData.status;
     if (newRemainingAmount <= 0) {
         newStatus = 'paid';
-    } else if ((debtData && debtData.status === 'pending') || !debtData) {
+    } else if (debtData.status === 'pending') {
         newStatus = 'partial';
     }
     
@@ -1381,7 +1528,13 @@ function recordInstallmentPayment(debtId, debtData) {
         new Date(paymentDate + 'T' + paymentTime) : 
         new Date(paymentDate);
     
+    // Generate payment ID and code
+    const paymentId = `${debtId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const paymentCode = generatePaymentCode(paymentId, { paymentDate: paymentDateTime });
+    
     const paymentRecord = {
+        id: paymentId,
+        paymentCode: paymentCode,
         amount: paymentAmount,
         date: paymentDateTime,
         note: paymentNote,
@@ -1448,6 +1601,7 @@ function recordInstallmentPayment(debtId, debtData) {
 
 // Edit debt from modal
 function editDebt(debtId) {
+    
     // Check if Firebase is initialized
     if (!window.firebaseAuth) {
         console.error('Firebase Auth not initialized in editDebt');
@@ -1461,6 +1615,7 @@ function editDebt(debtId) {
         return;
     }
     
+    
     // Get current debt data
     window.firebaseDb.collection('debts').doc(debtId).get()
         .then(function(doc) {
@@ -1468,6 +1623,7 @@ function editDebt(debtId) {
                 const debtData = doc.data();
                 showEditDebtForm(debtId, debtData);
             } else {
+                console.warn('Debt document not found');
                 showWarning('ไม่พบข้อมูลหนี้');
             }
         })
@@ -1503,15 +1659,24 @@ function showEditDebtForm(debtId, debtData) {
     document.getElementById('interestType').value = debtData.interestType || 'none';
     document.getElementById('installmentMonths').value = debtData.installmentMonths || 1;
     document.getElementById('dueDate').value = debtData.dueDate ? debtData.dueDate.toDate().toISOString().split('T')[0] : '';
+    document.getElementById('paymentDate').value = debtData.paymentDate || '';
     document.getElementById('debtDescription').value = debtData.description || '';
     
     // Update calculation summary
     calculateInterest();
     
-    // Change submit button text and function
-    const submitBtn = document.querySelector('#addDebtModal .btn-primary');
-    submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>อัปเดต';
-    submitBtn.onclick = () => updateExistingDebt(debtId);
+    // ซ่อนปุ่ม "เพิ่มข้อมูล" และแสดงปุ่ม "อัพเดทข้อมูล"
+    const addBtn = document.getElementById('addNewDebtBtn');
+    const updateBtn = document.getElementById('updateDebtBtn');
+    
+    
+    if (addBtn) {
+        addBtn.classList.add('d-none');
+    }
+    if (updateBtn) {
+        updateBtn.classList.remove('d-none');
+        updateBtn.onclick = () => updateExistingDebt(debtId);
+    }
     
     // Wait a bit for the debt details modal to fully close before showing the edit modal
     setTimeout(() => {
@@ -1531,6 +1696,7 @@ function updateExistingDebt(debtId) {
         interestType: document.getElementById('interestType').value,
         installmentMonths: parseInt(document.getElementById('installmentMonths').value) || 1,
         dueDate: new Date(document.getElementById('dueDate').value),
+        paymentDate: parseInt(document.getElementById('paymentDate').value) || null,
         description: document.getElementById('debtDescription').value.trim()
     };
     
@@ -1690,8 +1856,6 @@ function deleteDebt(debtId) {
 
 // Delete specific payment record
 function deletePaymentRecord(debtId, paymentId) {
-    console.log('Delete payment record:', debtId, paymentId);
-    
     // Check if Firebase is initialized
     if (!window.firebaseAuth) {
         console.error('Firebase Auth not initialized in deletePaymentRecord');
@@ -1705,12 +1869,16 @@ function deletePaymentRecord(debtId, paymentId) {
         return;
     }
     
-    if (!debtId) {
-        showError('เกิดข้อผิดพลาด: ไม่พบรหัสหนี้');
+    // Validate parameters
+    if (!debtId || !paymentId || paymentId === 'undefined') {
+        showError('ไม่พบข้อมูลการชำระเงินที่ต้องการลบ');
         return;
     }
     
     if (confirm('ยืนยันการลบรายการชำระเงินนี้?')) {
+        // Show loading state
+        showInfo('กำลังลบรายการชำระเงิน...');
+        
         // Get current debt data
         window.firebaseDb.collection('debts').doc(debtId).get()
             .then(function(doc) {
@@ -1718,82 +1886,21 @@ function deletePaymentRecord(debtId, paymentId) {
                     const debtData = doc.data();
                     const paymentHistory = debtData.paymentHistory || [];
                     
-                    console.log('Current payment history:', paymentHistory);
-                    console.log('Looking for paymentId:', paymentId);
-                    
-                    // Debug: Log each payment's timestamp
-                    paymentHistory.forEach((payment, index) => {
-                        console.log(`Payment ${index}:`, {
-                            timestamp: payment.timestamp,
-                            timestampType: typeof payment.timestamp,
-                            timestampSeconds: payment.timestamp?.seconds,
-                            date: payment.date,
-                            dateType: typeof payment.date,
-                            dateSeconds: payment.date?.seconds,
-                            amount: payment.amount,
-                            installmentNumber: payment.installmentNumber
-                        });
+                    // Find the payment record to delete
+                    const paymentToDelete = paymentHistory.find(payment => {
+                        const currentPaymentId = payment.id || payment.paymentId || payment.timestamp;
+                        return currentPaymentId === paymentId;
                     });
                     
-                    // Find and remove the specific payment record
-                    let updatedPaymentHistory;
-                    let removedPayment = null;
-                    
-                    if (paymentId && paymentId !== 'undefined') {
-                        // Try to find by various ID fields
-                        updatedPaymentHistory = paymentHistory.filter((payment, index) => {
-                            const currentPaymentId = payment.paymentId || payment.id || payment.timestamp || payment.date;
-                            
-                            // Handle Firestore Timestamp comparison
-                            let isMatch = false;
-                            
-                            if (currentPaymentId && paymentId) {
-                                // If currentPaymentId is Firestore Timestamp and paymentId is string representation
-                                if (currentPaymentId.seconds && paymentId.includes('seconds=')) {
-                                    const currentSeconds = currentPaymentId.seconds;
-                                    const targetSeconds = parseInt(paymentId.match(/seconds=(\d+)/)?.[1] || '0');
-                                    isMatch = currentSeconds === targetSeconds;
-                                    console.log(`Timestamp comparison: ${currentSeconds} === ${targetSeconds} = ${isMatch}`);
-                                }
-                                // If both are strings, compare directly
-                                else if (typeof currentPaymentId === 'string' && typeof paymentId === 'string') {
-                                    isMatch = currentPaymentId === paymentId;
-                                    console.log(`String comparison: "${currentPaymentId}" === "${paymentId}" = ${isMatch}`);
-                                }
-                                // Try toString comparison as fallback
-                                else {
-                                    isMatch = currentPaymentId.toString() === paymentId.toString();
-                                    console.log(`ToString comparison: "${currentPaymentId.toString()}" === "${paymentId.toString()}" = ${isMatch}`);
-                                }
-                            }
-                            
-                            // Also check by index as fallback
-                            if (!isMatch && paymentId.toString() === index.toString()) {
-                                isMatch = true;
-                            }
-                            
-                            if (isMatch) {
-                                removedPayment = payment;
-                            }
-                            return !isMatch;
-                        });
-                    } else {
-                        // If no specific paymentId, remove the last payment (most recent)
-                        if (paymentHistory.length > 0) {
-                            removedPayment = paymentHistory[paymentHistory.length - 1];
-                            updatedPaymentHistory = paymentHistory.slice(0, -1);
-                        } else {
-                            updatedPaymentHistory = paymentHistory;
-                        }
+                    if (!paymentToDelete) {
+                        throw new Error('ไม่พบรายการชำระเงินที่ต้องการลบ');
                     }
                     
-                    console.log('Removed payment:', removedPayment);
-                    console.log('Updated payment history:', updatedPaymentHistory);
-                    
-                    if (!removedPayment) {
-                        showWarning('ไม่พบรายการชำระเงินที่ต้องการลบ');
-                        return;
-                    }
+                    // Remove the specific payment record
+                    const updatedPaymentHistory = paymentHistory.filter(payment => {
+                        const currentPaymentId = payment.id || payment.paymentId || payment.timestamp;
+                        return currentPaymentId !== paymentId;
+                    });
                     
                     // Calculate new totals
                     const totalPaid = updatedPaymentHistory.reduce((sum, payment) => sum + (payment.amount || 0), 0);
@@ -1825,18 +1932,19 @@ function deletePaymentRecord(debtId, paymentId) {
             })
             .then(function() {
                 showSuccess('ลบรายการชำระเงินเรียบร้อยแล้ว');
-                // Refresh data
+                
+                // Refresh all data
                 loadDashboardData();
-                const userId = window.firebaseAuth.currentUser?.uid;
-                if (userId) {
-                    loadUserDebts(userId);
-                    loadPaymentHistory();
-                }
                 loadAllDebts();
+                
+                // Force refresh payment history with delay to ensure data is updated
+                setTimeout(() => {
+                    loadPaymentHistory();
+                }, 1000);
             })
             .catch(function(error) {
                 console.error('Error deleting payment record:', error);
-                showError('เกิดข้อผิดพลาดในการลบรายการชำระเงิน');
+                showError('เกิดข้อผิดพลาดในการลบรายการชำระเงิน: ' + error.message);
             });
     }
 }
@@ -1989,7 +2097,7 @@ function setupEventListeners() {
                         removeFocusFromModal(modal);
                     }
                 });
-                notificationSettings();
+                // notificationSettings(); // Removed - notifications not used
             } else if (text.includes('จัดการลูกหนี้')) {
                 e.preventDefault();
                 // Remove focus from any elements in modals before managing debtors
@@ -2011,6 +2119,11 @@ function setupEventListeners() {
         handleNavigation(hash);
         updateActiveNavLink(hash);
     });
+}
+
+// Add new debt (wrapper for submitNewDebt)
+function addNewDebt() {
+    submitNewDebt();
 }
 
 // Submit new debt form
@@ -2173,7 +2286,7 @@ function submitNewDebt() {
             })
             .then(function(docRef) {
                 // Create notification for debtor (don't wait for it to complete)
-                createDebtNotification(docRef.id, debtData);
+                // createDebtNotification(docRef.id, debtData); // Removed - notifications not used
 
                 showSuccess('เพิ่มหนี้ใหม่เรียบร้อยแล้ว');
 
@@ -2271,9 +2384,9 @@ function submitNewDebt() {
             }
         }).then(function(result) {
             // Create notification for debtor (don't wait for it to complete)
-            createDebtNotification(result.docRef.id, result.debtData);
+            // createDebtNotification(result.docRef.id, result.debtData); // Removed - notifications not used
 
-            showSuccess('เพิ่มหนี้ใหม่เรียบร้อยแล้ว\nลูกหนี้จะได้รับการแจ้งเตือนอัตโนมัติ');
+            showSuccess('เพิ่มหนี้ใหม่เรียบร้อยแล้ว');
 
             // Reset form, close modal, refresh dashboard
             const form = document.getElementById('addDebtForm');
@@ -2356,42 +2469,9 @@ function updateDebtsForNewDebtor(debtorPhone, debtorId) {
 }
 
 // Create notification for debtor when new debt is created
-function createDebtNotification(debtId, debtData) {
-    // Creating notification for debt
-    // Debt data
-    
-    // Create notification data
-    const notificationData = {
-        userId: debtData.debtorId, // Add userId field for security rules
-        debtId: debtId,
-        creditorId: debtData.creditorId,
-        debtorName: debtData.debtorName,
-        debtorPhone: debtData.debtorPhone,
-        amount: debtData.totalAmount,
-        description: debtData.description,
-        dueDate: debtData.dueDate,
-        createdAt: new Date(),
-        type: 'new_debt',
-        status: 'unread',
-        message: `คุณมีหนี้ใหม่จาก ${debtData.debtorName} จำนวน ฿${debtData.totalAmount.toLocaleString()} ครบกำหนดชำระวันที่ ${debtData.dueDate.toLocaleDateString('th-TH')}`
-    };
-    
-    // Notification data
-    
-    // Add notification to notifications collection
-    window.firebaseDb.collection('notifications').add(notificationData)
-        .then(function(docRef) {
-            // Notification created successfully with ID
-        })
-        .catch(function(error) {
-            console.error('Error creating notification:', error);
-            console.error('Error details:', {
-                message: error.message,
-                code: error.code,
-                stack: error.stack
-            });
-        });
-}
+// function createDebtNotification(debtId, debtData) {
+//     // Removed - notifications not used
+// }
 
 // Handle navigation
 function handleNavigation(href) {
@@ -2610,6 +2690,11 @@ function showAddDebtForm() {
         if (dueDateInput) {
             dueDateInput.value = tomorrow.toISOString().split('T')[0];
         }
+        // Reset payment date field
+        const paymentDateInput = document.getElementById('paymentDate');
+        if (paymentDateInput) {
+            paymentDateInput.value = '';
+        }
     }
     
     // Set up calculation event listeners
@@ -2646,6 +2731,26 @@ function showAddDebtForm() {
     document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
     document.body.style.paddingRight = '';
+    
+    // รีเซ็ต modal header เป็น "เพิ่มข้อมูล"
+    const modalTitle = document.getElementById('addDebtModalLabel');
+    if (modalTitle) {
+        modalTitle.innerHTML = '<i class="fas fa-plus me-2"></i>เพิ่มข้อมูล';
+    }
+    
+    // แสดงปุ่ม "เพิ่มข้อมูล" และซ่อนปุ่ม "อัพเดทข้อมูล"
+    const addBtn = document.getElementById('addNewDebtBtn');
+    const updateBtn = document.getElementById('updateDebtBtn');
+    
+    if (addBtn) {
+        addBtn.classList.remove('d-none');
+    }
+    if (updateBtn) {
+        updateBtn.classList.add('d-none');
+    }
+    
+    // รีเซ็ตตัวแปร global
+    window.currentEditingDebtId = null;
     
     // Show modal with custom backdrop options
     try {
@@ -2815,19 +2920,7 @@ function updateActiveNavLink(href) {
     }
 }
 
-// Add new debt
-function addNewDebt() {
-    // Remove focus from any elements in other modals before showing add debt form
-    const otherModals = ['debtDetailsModal', 'installmentPaymentModal'];
-    otherModals.forEach(modalId => {
-        const otherModal = document.getElementById(modalId);
-        if (otherModal) {
-            removeFocusFromModal(otherModal);
-        }
-    });
-    
-    showAddDebtForm();
-}
+// Add new debt (duplicate function removed - using the one at line 1887)
 
 // Setup calculation event listeners
 function setupCalculationListeners() {
@@ -2977,20 +3070,14 @@ function getCalculatedValues() {
         };
     }
     
-    // Log the values for debugging
-    console.log('Form values:', {
-        debtAmount: debtAmountElement.value,
-        interestRate: interestRateElement.value,
-        interestType: interestTypeElement.value,
-        installmentMonths: installmentMonthsElement.value
-    });
+    // Parse form values
     
     const principal = parseFloat(debtAmountElement.value) || 0;
     const rate = parseFloat(interestRateElement.value) || 0;
     const type = interestTypeElement.value || 'none';
     const months = parseInt(installmentMonthsElement.value) || 1;
     
-    console.log('Parsed values:', { principal, rate, type, months });
+    // Calculate interest based on type
     
     let totalInterest = 0;
     let totalAmount = principal;
@@ -3002,15 +3089,15 @@ function getCalculatedValues() {
         totalInterest = monthlyInterest * months;
         totalAmount = principal + totalInterest;
         monthlyPayment = totalAmount / months;
-        console.log('Simple interest calculation:', { annualInterest, monthlyInterest, totalInterest, totalAmount, monthlyPayment });
+        // Simple interest calculation completed
     } else if (type === 'compound' && rate > 0) {
         const monthlyRate = rate / 100 / 12;
         totalAmount = principal * Math.pow(1 + monthlyRate, months);
         totalInterest = totalAmount - principal;
         monthlyPayment = (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
-        console.log('Compound interest calculation:', { monthlyRate, totalAmount, totalInterest, monthlyPayment });
+        // Compound interest calculation completed
     } else {
-        console.log('No interest calculation (type:', type, 'rate:', rate, ')');
+        // No interest calculation
     }
     
     const result = {
@@ -3071,7 +3158,7 @@ function loadAllDebts() {
                     <h5 class="text-muted">ยังไม่มีข้อมูลหนี้</h5>
                     <p class="text-muted">เริ่มต้นเพิ่มหนี้ใหม่เพื่อดูรายการ</p>
                     <button class="btn btn-primary" onclick="showAddDebtForm()">
-                        <i class="fas fa-plus me-2"></i>เพิ่มหนี้ใหม่
+                        <i class="fas fa-plus me-2"></i>เพิ่มข้อมูล
                     </button>
                 </div>
             `;
@@ -3131,10 +3218,16 @@ function createAllDebtsItem(debtId, debt) {
     // Format last updated date
     const updatedDate = debt.updatedAt ? new Date(debt.updatedAt.toDate()).toLocaleDateString('th-TH') : '-';
     
+    // Generate readable debt code
+    const debtCode = generateDebtCode(debtId, debt);
+    
     debtItem.innerHTML = `
         <div class="row align-items-center">
+            <div class="col-md-1">
+                <small class="text-muted">${debtCode}</small>
+            </div>
             <div class="col-md-2">
-                <h6 class="mb-1">${debt.debtorName || 'ไม่ระบุชื่อ'}</h6>
+                <h6 class="mb-1">${formatDebtorId(debt.debtorId || 'ไม่ระบุรหัสลูกหนี้')}</h6>
                 <small class="text-muted">${debt.description || 'ไม่มีคำอธิบาย'}</small>
                 ${interestInfo}
             </div>
@@ -3150,9 +3243,6 @@ function createAllDebtsItem(debtId, debt) {
             </div>
             <div class="col-md-2 text-end">
                 <small class="text-muted">${createdDate}</small>
-            </div>
-            <div class="col-md-1 text-end">
-                <small class="text-muted">${updatedDate}</small>
             </div>
             <div class="col-md-1 text-end">
                 <button class="btn btn-sm btn-outline-primary me-1" onclick="editDebt('${debtId}')">
@@ -3493,18 +3583,9 @@ function downloadCSV(content, filename) {
 }
 
 // Notification settings
-function notificationSettings() {
-    // Remove focus from any elements in modals before showing settings
-    const modals = ['addDebtModal', 'debtDetailsModal', 'installmentPaymentModal'];
-    modals.forEach(modalId => {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            removeFocusFromModal(modal);
-        }
-    });
-    
-    showSettings();
-}
+// function notificationSettings() {
+//     // Removed - notifications not used
+// }
 
 
 // Save profile settings
@@ -3618,21 +3699,12 @@ function showPaymentHistory() {
 }
 
 // Load payment history data
-let isLoadingPaymentHistory = false;
-
 function loadPaymentHistory() {
-    // Prevent duplicate loading
-    if (isLoadingPaymentHistory) {
-        return;
-    }
-    
     // Check if Firebase is initialized
     if (!window.firebaseAuth) {
         console.error('Firebase Auth not initialized in loadPaymentHistory');
         return;
     }
-    
-    isLoadingPaymentHistory = true;
     
     const userId = window.firebaseAuth.currentUser?.uid;
     if (!userId) {
@@ -3640,7 +3712,6 @@ function loadPaymentHistory() {
         // Wait for authentication to be ready
         if (window.firebaseAuth.currentUser === null) {
             // User is not logged in, redirect to login
-            isLoadingPaymentHistory = false; // Reset flag before redirect
             sessionStorage.setItem('isRedirecting', 'true');
             setTimeout(() => {
                 window.location.href = '../../index.html';
@@ -3648,7 +3719,6 @@ function loadPaymentHistory() {
             return;
         } else {
             // Firebase is still initializing, wait a bit and try again
-            isLoadingPaymentHistory = false; // Reset flag before retry
             setTimeout(() => {
                 loadPaymentHistory();
             }, 1000);
@@ -3676,22 +3746,32 @@ function loadPaymentHistory() {
         .then(function(querySnapshot) {
             paymentHistoryData = [];
             
+            
             querySnapshot.forEach(function(doc) {
                 const debtData = doc.data();
                 const paymentHistory = debtData.paymentHistory || [];
                 
+                
                 // Add each payment to the history data
                 paymentHistory.forEach(function(payment, index) {
+                    // Generate readable codes
+                    const debtCode = generateDebtCode(doc.id, debtData);
+                    const paymentCode = payment.paymentCode || generatePaymentCode(payment.id || `${doc.id}_${Date.now()}`, { paymentDate: payment.date });
+                    
+                    // Ensure we have a unique payment ID for deletion
+                    const paymentId = payment.id || payment.paymentId || payment.timestamp || `${doc.id}_payment_${index}_${Date.now()}`;
+                    
                     paymentHistoryData.push({
                         debtId: doc.id,
+                        paymentId: paymentId,
                         debtorName: debtData.debtorName || 'ไม่ระบุชื่อ',
                         paymentDate: payment.date,
                         amount: payment.amount,
                         installmentNumber: payment.installmentNumber,
                         note: payment.note || '',
                         debtDescription: debtData.description || '',
-                        timestamp: payment.timestamp || payment.date,
-                        paymentIndex: index // Add index as fallback identifier
+                        debtCode: debtCode,
+                        paymentCode: paymentCode
                     });
                 });
             });
@@ -3707,14 +3787,12 @@ function loadPaymentHistory() {
             // Populate debtor filter
             populateDebtorFilter();
             
-            // Apply current filter only if we have data
-            if (paymentHistoryData.length > 0) {
-                applyPaymentHistoryFilter();
-            }
+            // Apply current filter
+            applyPaymentHistoryFilter();
             
             // Show message if no payment history found
             if (paymentHistoryData.length === 0) {
-                console.log('No payment history found - showing empty state');
+                // No payment history found for user
                 const tableBody = document.getElementById('paymentHistoryTableBody');
                 if (tableBody) {
                     tableBody.innerHTML = `
@@ -3730,19 +3808,7 @@ function loadPaymentHistory() {
                 
                 // Update mobile cards for empty state
                 createPaymentHistoryMobileCards();
-            } else {
-                // Populate table with real data
-                populatePaymentHistoryTable(paymentHistoryData);
-                
-                // Create mobile cards
-                createPaymentHistoryMobileCards();
-                
-                // Update statistics
-                updatePaymentHistoryStats(paymentHistoryData);
             }
-            
-            // Reset loading flag
-            isLoadingPaymentHistory = false;
         })
         .catch(function(error) {
             console.error('Error loading payment history:', error);
@@ -3757,9 +3823,6 @@ function loadPaymentHistory() {
                     </tr>
                 `;
             }
-            
-            // Reset loading flag on error
-            isLoadingPaymentHistory = false;
             
             // Update mobile cards for error state
             const mobileContainer = document.getElementById('paymentHistoryMobileCards');
@@ -3816,13 +3879,6 @@ function populateDebtorFilter() {
 
 // Apply payment history filter
 function applyPaymentHistoryFilter() {
-    // Check if paymentHistoryData is available
-    if (!paymentHistoryData || !Array.isArray(paymentHistoryData)) {
-        console.warn('applyPaymentHistoryFilter: No payment history data available');
-        filteredPaymentHistory = [];
-        return;
-    }
-    
     // Get the payment history filterDebtor element
     const debtorFilterElement = document.getElementById('filterDebtorPayment');
     const debtorFilter = debtorFilterElement ? debtorFilterElement.value : '';
@@ -3873,7 +3929,7 @@ function applyPaymentHistoryFilter() {
     });
     
     // Update statistics
-    updatePaymentHistoryStats(filteredPaymentHistory);
+    updatePaymentHistoryStats();
     
     // Reset to first page
     currentPaymentHistoryPage = 1;
@@ -3899,7 +3955,7 @@ function clearPaymentHistoryFilter() {
     filteredPaymentHistory = [...paymentHistoryData];
     
     // Update statistics
-    updatePaymentHistoryStats(filteredPaymentHistory);
+    updatePaymentHistoryStats();
     
     // Reset to first page
     currentPaymentHistoryPage = 1;
@@ -3911,6 +3967,18 @@ function clearPaymentHistoryFilter() {
     createPaymentHistoryMobileCards();
 }
 
+// Update payment history statistics
+function updatePaymentHistoryStats() {
+    const totalPayments = filteredPaymentHistory.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+    const totalPaymentCount = filteredPaymentHistory.length;
+    const activeDebtors = new Set(filteredPaymentHistory.map(payment => payment.debtorName)).size;
+    const avgPaymentAmount = totalPaymentCount > 0 ? totalPayments / totalPaymentCount : 0;
+    
+    document.getElementById('totalPayments').textContent = totalPayments.toLocaleString();
+    document.getElementById('totalPaymentCount').textContent = totalPaymentCount.toLocaleString();
+    document.getElementById('activeDebtors').textContent = activeDebtors.toLocaleString();
+    document.getElementById('avgPaymentAmount').textContent = avgPaymentAmount.toFixed(2);
+}
 
 // Display payment history table
 // ตัวแปรสำหรับเก็บ DataTable instance
@@ -3956,12 +4024,11 @@ function displayPaymentHistoryTable() {
     // เตรียมข้อมูลสำหรับ DataTables
     const tableData = filteredPaymentHistory.map(payment => {
         const paymentDate = payment.paymentDate ? new Date(payment.paymentDate.toDate()).toLocaleDateString('th-TH') : '-';
-        const shortDebtId = payment.debtId.substring(0, 8) + '...';
         
         return [
+            `<code>${payment.paymentCode || 'P25680906-0001'}</code>`,
             paymentDate,
             `<strong>${payment.debtorName}</strong><br><small class="text-muted">${payment.debtDescription}</small>`,
-            `<code>${shortDebtId}</code>`,
             `<span class="badge bg-info">งวดที่ ${payment.installmentNumber || '-'}</span>`,
             `<strong class="text-success">฿${payment.amount.toFixed(2)}</strong>`,
             payment.note || '-',
@@ -4031,6 +4098,7 @@ function updatePaymentHistoryPagination() {
 function createPaymentHistoryMobileCards() {
     const mobileContainer = document.getElementById('paymentHistoryMobileCards');
     if (!mobileContainer) {
+        // Payment history mobile container not found
         return;
     }
     
@@ -4073,7 +4141,11 @@ function createPaymentHistoryMobileCards() {
                 </div>
                 <div class="payment-detail-row">
                     <span class="payment-detail-label">รหัสหนี้:</span>
-                    <span class="payment-detail-value"><code>${shortDebtId}</code></span>
+                    <span class="payment-detail-value"><code>${payment.debtCode || shortDebtId}</code></span>
+                </div>
+                <div class="payment-detail-row">
+                    <span class="payment-detail-label">รหัสการชำระ:</span>
+                    <span class="payment-detail-value"><code>${payment.paymentCode || 'P25680906-0001'}</code></span>
                 </div>
                 <div class="payment-detail-row">
                     <span class="payment-detail-label">งวดที่:</span>
@@ -4088,7 +4160,7 @@ function createPaymentHistoryMobileCards() {
             </div>
             
             <div class="payment-actions">
-                <button class="btn btn-sm btn-outline-danger" onclick="deletePaymentRecord('${payment.debtId}', '${payment.timestamp || payment.paymentIndex}')">
+                <button class="btn btn-sm btn-outline-danger" onclick="deletePaymentRecord('${payment.debtId}', '${payment.paymentId || payment.timestamp}')">
                     <i class="fas fa-trash me-1"></i>ลบ
                 </button>
             </div>
@@ -4118,309 +4190,6 @@ function changePaymentHistoryPage(page) {
     return;
 }
 
-// Populate payment history table with data
-function populatePaymentHistoryTable(data) {
-    const tableBody = document.getElementById('paymentHistoryTableBody');
-    if (!tableBody) return;
-    
-    // Clear existing data
-    tableBody.innerHTML = '';
-    
-    // Add data rows
-    data.forEach(payment => {
-        const row = document.createElement('tr');
-        
-        // Format payment date
-        const paymentDate = payment.paymentDate ? 
-            (payment.paymentDate.toDate ? payment.paymentDate.toDate() : new Date(payment.paymentDate)) : 
-            new Date();
-        const formattedDate = paymentDate.toLocaleDateString('th-TH');
-        
-        // Format amount
-        const formattedAmount = payment.amount ? payment.amount.toLocaleString('th-TH', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }) : '0.00';
-        
-        row.innerHTML = `
-            <td>${formattedDate}</td>
-            <td>
-                <strong>${payment.debtorName}</strong>
-                <br><small class="text-muted">${payment.debtorPhone || ''}</small>
-            </td>
-            <td><code>${payment.debtId ? payment.debtId.substring(0, 8) + '...' : 'ไม่ระบุ'}</code></td>
-            <td>
-                <span class="badge bg-info">งวดที่ ${payment.installmentNumber || 1}</span>
-            </td>
-            <td>
-                <strong class="text-success">฿${formattedAmount}</strong>
-            </td>
-            <td>${payment.note || '-'}</td>
-            <td>
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="viewPaymentDetails('${payment.debtId}', '${payment.timestamp || payment.paymentIndex}')">
-                    <i class="fas fa-eye me-1"></i>ดู
-                </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deletePaymentRecord('${payment.debtId}', '${payment.timestamp || payment.paymentIndex}')">
-                    <i class="fas fa-trash me-1"></i>ลบ
-                </button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
-
-// Update payment history statistics
-function updatePaymentHistoryStats(data) {
-    // Check if data is valid
-    if (!data || !Array.isArray(data)) {
-        console.warn('updatePaymentHistoryStats: Invalid data provided', data);
-        return;
-    }
-    
-    const totalPayments = data.reduce((sum, payment) => sum + (payment.amount || 0), 0);
-    const totalPaymentCount = data.length;
-    const activeDebtors = new Set(data.map(payment => payment.debtorName)).size;
-    const avgPaymentAmount = totalPaymentCount > 0 ? totalPayments / totalPaymentCount : 0;
-    
-    // Update statistics elements
-    const totalPaymentsElement = document.getElementById('totalPayments');
-    if (totalPaymentsElement) {
-        totalPaymentsElement.textContent = totalPayments.toLocaleString('th-TH', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
-    
-    const totalPaymentCountElement = document.getElementById('totalPaymentCount');
-    if (totalPaymentCountElement) {
-        totalPaymentCountElement.textContent = totalPaymentCount;
-    }
-    
-    const activeDebtorsElement = document.getElementById('activeDebtors');
-    if (activeDebtorsElement) {
-        activeDebtorsElement.textContent = activeDebtors;
-    }
-    
-    const avgPaymentAmountElement = document.getElementById('avgPaymentAmount');
-    if (avgPaymentAmountElement) {
-        avgPaymentAmountElement.textContent = avgPaymentAmount.toLocaleString('th-TH', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
-}
-
-// View payment details
-function viewPaymentDetails(debtId, paymentId) {
-    console.log('View payment details:', debtId, paymentId);
-    
-    if (!debtId) {
-        showError('เกิดข้อผิดพลาด: ไม่พบรหัสหนี้');
-        return;
-    }
-    
-    if (!window.firebaseAuth || !window.firebaseDb) {
-        showError('เกิดข้อผิดพลาด: ไม่สามารถเชื่อมต่อระบบ');
-        return;
-    }
-    
-    // Show payment details modal
-    showPaymentDetailsModal(debtId, paymentId);
-    
-    // Get debt data and find the specific payment
-    window.firebaseDb.collection('debts').doc(debtId).get()
-        .then(function(doc) {
-            if (doc.exists) {
-                const debtData = doc.data();
-                const paymentHistory = debtData.paymentHistory || [];
-                
-                // Find the specific payment
-                let targetPayment = null;
-                if (paymentId && paymentId !== 'undefined') {
-                    targetPayment = paymentHistory.find(payment => 
-                        payment.timestamp && payment.timestamp.toString() === paymentId
-                    );
-                }
-                
-                // If not found by timestamp, try to find by installment number or use the first payment
-                if (!targetPayment && paymentHistory.length > 0) {
-                    targetPayment = paymentHistory[0]; // Use first payment as fallback
-                }
-                
-                if (targetPayment) {
-                    populatePaymentDetailsModal(targetPayment, debtData, debtId);
-                } else {
-                    showError('ไม่พบข้อมูลการชำระเงิน');
-                    hidePaymentDetailsModal();
-                }
-            } else {
-                showError('ไม่พบข้อมูลหนี้');
-                hidePaymentDetailsModal();
-            }
-        })
-        .catch(function(error) {
-            console.error('Error loading payment details:', error);
-            showError('เกิดข้อผิดพลาดในการโหลดข้อมูล');
-            hidePaymentDetailsModal();
-        });
-}
-
-// Show payment details modal
-function showPaymentDetailsModal(debtId, paymentId) {
-    // Create modal if it doesn't exist
-    let modal = document.getElementById('paymentDetailsModal');
-    if (!modal) {
-        modal = createPaymentDetailsModal();
-        document.body.appendChild(modal);
-    }
-    
-    // Show the modal
-    const bootstrapModal = new bootstrap.Modal(modal);
-    bootstrapModal.show();
-}
-
-// Hide payment details modal
-function hidePaymentDetailsModal() {
-    const modal = document.getElementById('paymentDetailsModal');
-    if (modal) {
-        const bootstrapModal = bootstrap.Modal.getInstance(modal);
-        if (bootstrapModal) {
-            bootstrapModal.hide();
-        }
-    }
-}
-
-// Create payment details modal
-function createPaymentDetailsModal() {
-    const modal = document.createElement('div');
-    modal.className = 'modal fade';
-    modal.id = 'paymentDetailsModal';
-    modal.setAttribute('tabindex', '-1');
-    modal.setAttribute('aria-labelledby', 'paymentDetailsModalLabel');
-    modal.setAttribute('aria-hidden', 'true');
-    
-    modal.innerHTML = `
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="paymentDetailsModalLabel">
-                        <i class="fas fa-credit-card me-2"></i>รายละเอียดการชำระเงิน
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Content will be populated dynamically -->
-                </div>
-                <div class="modal-footer d-flex justify-content-end align-items-center">
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
-                            <i class="fas fa-times me-1"></i>ปิด
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    return modal;
-}
-
-// Populate payment details modal
-function populatePaymentDetailsModal(paymentData, debtData, debtId) {
-    const modal = document.getElementById('paymentDetailsModal');
-    if (!modal) return;
-    
-    const modalBody = modal.querySelector('.modal-body');
-    if (!modalBody) return;
-    
-    // Format payment date
-    const paymentDate = paymentData.date ? 
-        new Date(paymentData.date.toDate ? paymentData.date.toDate() : paymentData.date).toLocaleDateString('th-TH', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        }) : 'ไม่ระบุ';
-    
-    // Format amount
-    const formattedAmount = paymentData.amount ? 
-        paymentData.amount.toLocaleString('th-TH', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }) : '0.00';
-    
-    modalBody.innerHTML = `
-        <div class="row">
-            <div class="col-md-6">
-                <h6 class="text-primary mb-3">
-                    <i class="fas fa-info-circle me-2"></i>ข้อมูลการชำระเงิน
-                </h6>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">รหัสหนี้:</label>
-                    <p class="text-muted"><code>${debtId ? debtId.substring(0, 8) + '...' : 'ไม่ระบุ'}</code></p>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">จำนวนเงิน:</label>
-                    <p class="text-success fs-5">฿${formattedAmount}</p>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">วันที่ชำระ:</label>
-                    <p class="text-muted">${paymentDate}</p>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">งวดที่:</label>
-                    <p class="text-muted">
-                        <span class="badge bg-info">งวดที่ ${paymentData.installmentNumber || 1}</span>
-                    </p>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <h6 class="text-primary mb-3">
-                    <i class="fas fa-user me-2"></i>ข้อมูลผู้เกี่ยวข้อง
-                </h6>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">ชื่อลูกหนี้:</label>
-                    <p class="text-muted">${debtData.debtorName || 'ไม่ระบุ'}</p>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">เบอร์โทรศัพท์:</label>
-                    <p class="text-muted">${debtData.debtorPhone || 'ไม่ระบุ'}</p>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">อีเมล:</label>
-                    <p class="text-muted">${debtData.debtorEmail || 'ไม่ระบุ'}</p>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">หมายเหตุการชำระ:</label>
-                    <p class="text-muted">${paymentData.note || '-'}</p>
-                </div>
-            </div>
-        </div>
-        <hr>
-        <div class="row">
-            <div class="col-12">
-                <h6 class="text-primary mb-3">
-                    <i class="fas fa-file-invoice me-2"></i>ข้อมูลหนี้
-                </h6>
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">รายละเอียดหนี้:</label>
-                        <p class="text-muted">${debtData.description || 'ไม่ระบุ'}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">ยอดคงเหลือ:</label>
-                        <p class="text-warning fs-6">฿${(debtData.remainingAmount || 0).toLocaleString('th-TH', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
 // Refresh payment history
 function refreshPaymentHistory() {
     loadPaymentHistory();
@@ -4434,13 +4203,13 @@ function downloadPaymentHistoryReport() {
     }
     
     // Create CSV content with proper Thai encoding
-    const headers = ['วันที่ชำระ', 'ลูกหนี้', 'รหัสหนี้', 'งวดที่', 'จำนวนเงิน', 'หมายเหตุ'];
+    const headers = ['รหัสการชำระ', 'วันที่ชำระ', 'ชื่อลูกหนี้', 'งวดที่', 'จำนวนเงิน', 'หมายเหตุ'];
     const rows = filteredPaymentHistory.map(payment => {
         const paymentDate = payment.paymentDate ? new Date(payment.paymentDate.toDate()).toLocaleDateString('th-TH') : '-';
         return [
+            payment.paymentCode || 'P25680906-0001',
             paymentDate,
             payment.debtorName,
-            payment.debtId,
             payment.installmentNumber || '-',
             payment.amount.toFixed(2),
             payment.note || '-'
@@ -4522,8 +4291,11 @@ function removeFocusFromModal(modalElement) {
 
 // Close add debt modal properly
 function closeAddDebtModal() {
+    // Debug log removed
+    
     const addDebtModal = document.getElementById('addDebtModal');
     if (!addDebtModal) {
+        // Debug log removed
         return;
     }
     
@@ -4534,8 +4306,10 @@ function closeAddDebtModal() {
         // Try Bootstrap modal first
         const bootstrapModal = bootstrap.Modal.getInstance(addDebtModal);
         if (bootstrapModal) {
+            // Debug log removed
             bootstrapModal.hide();
         } else {
+            // Debug log removed
             // Manual cleanup if Bootstrap instance not found
             addDebtModal.classList.remove('show');
             addDebtModal.style.display = 'none';
@@ -4568,11 +4342,16 @@ function closeAddDebtModal() {
             modalTitle.innerHTML = '<i class="fas fa-plus me-2"></i>เพิ่มหนี้ใหม่';
         }
         
-        const submitBtn = document.querySelector('#addDebtModal .btn-primary');
+        const submitBtn = document.querySelector('#addDebtModal .btn-warning');
         if (submitBtn) {
-            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>บันทึก';
-            submitBtn.onclick = submitNewDebt;
+            submitBtn.innerHTML = '<i class="fas fa-edit me-1"></i>อัปเดต';
+            submitBtn.onclick = updateExistingDebt;
         }
+        
+        // รีเซ็ตตัวแปร global
+        window.currentEditingDebtId = null;
+        
+        // Debug log removed
         
     } catch (error) {
         console.error('Error closing add debt modal:', error);
@@ -4583,11 +4362,11 @@ function closeAddDebtModal() {
 
 // Comprehensive modal cleanup function to prevent black screen issues
 function forceModalCleanup(modalId) {
-    console.log('Force cleaning up modal:', modalId);
+    // Debug log removed
     
     const modalElement = document.getElementById(modalId);
     if (!modalElement) {
-        console.log('Modal element not found:', modalId);
+        // Debug log removed
         return;
     }
     
@@ -4605,7 +4384,7 @@ function forceModalCleanup(modalId) {
         // Remove all modal backdrops (there might be multiple)
         const backdrops = document.querySelectorAll('.modal-backdrop');
         backdrops.forEach((backdrop, index) => {
-            console.log('Removing backdrop', index + 1, ':', backdrop);
+            // Debug log removed
             backdrop.remove();
         });
         
@@ -4623,7 +4402,7 @@ function forceModalCleanup(modalId) {
                     for (let j = 0; j < rules.length; j++) {
                         const rule = rules[j];
                         if (rule.selectorText && rule.selectorText.includes('modal-open')) {
-                            console.log('Found modal-open rule:', rule.selectorText);
+                            // Debug log removed
                         }
                     }
                 }
@@ -4640,14 +4419,14 @@ function forceModalCleanup(modalId) {
         try {
             const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
             if (bootstrapModal) {
-                console.log('Destroying Bootstrap modal instance');
+                // Debug log removed
                 bootstrapModal.dispose();
             }
         } catch (e) {
-            console.log('Error destroying Bootstrap modal instance:', e);
+            // Debug log removed
         }
         
-        console.log('Modal cleanup completed for:', modalId);
+        // Debug log removed
         
     } catch (error) {
         console.error('Error during modal cleanup:', error);
@@ -5254,6 +5033,7 @@ function loadDebtorFilterOptions() {
     
     // Check if we have data
     if (!allDebtsData || allDebtsData.length === 0) {
+        console.warn('No debts data available for debtor filter - will retry when data is loaded');
         // Show loading message instead of error
         debtorSelect.innerHTML = '<option value="">กำลังโหลดข้อมูล...</option>';
         
@@ -5501,74 +5281,6 @@ window.exportChartAsImage = function(chartType) {
     }
 };
 
-// Ensure the function is available globally
-if (typeof window.recordInstallmentPaymentFromModal === 'undefined') {
-    window.recordInstallmentPaymentFromModal = function() {
-        // Get form values
-        const paymentAmount = parseFloat(document.getElementById('paymentAmount')?.value || 0);
-        const paymentDate = document.getElementById('paymentDate')?.value;
-        const paymentTime = document.getElementById('paymentTime')?.value;
-        const paymentNote = document.getElementById('paymentNote')?.value || '';
-        
-        // Validate inputs
-        if (!paymentAmount || paymentAmount <= 0) {
-            if (typeof showWarning === 'function') {
-                showWarning('กรุณากรอกจำนวนเงินที่ชำระ');
-            } else {
-                alert('กรุณากรอกจำนวนเงินที่ชำระ');
-            }
-            return;
-        }
-        
-        if (!paymentDate) {
-            if (typeof showWarning === 'function') {
-                showWarning('กรุณาเลือกวันที่ชำระ');
-            } else {
-                alert('กรุณาเลือกวันที่ชำระ');
-            }
-            return;
-        }
-        
-        if (!paymentTime) {
-            if (typeof showWarning === 'function') {
-                showWarning('กรุณาเลือกเวลาชำระ');
-            } else {
-                alert('กรุณาเลือกเวลาชำระ');
-            }
-            return;
-        }
-        
-        // Create payment record
-        const paymentDateTime = new Date(paymentDate + 'T' + paymentTime);
-        const paymentRecord = {
-            amount: paymentAmount,
-            date: paymentDateTime,
-            note: paymentNote,
-            timestamp: new Date(),
-            installmentNumber: 1 // Default to 1 for demo
-        };
-        
-        // Show success message
-        if (typeof showSuccess === 'function') {
-            showSuccess(`บันทึกการชำระ ฿${paymentAmount.toFixed(2)} เรียบร้อยแล้ว`);
-        } else {
-            alert(`บันทึกการชำระ ฿${paymentAmount.toFixed(2)} เรียบร้อยแล้ว`);
-        }
-        
-        // Close modal
-        const modal = document.getElementById('installmentPaymentModal');
-        if (modal) {
-            const bootstrapModal = bootstrap.Modal.getInstance(modal);
-            if (bootstrapModal) {
-                bootstrapModal.hide();
-            }
-        }
-        
-        // Log payment record for debugging
-        console.log('Payment recorded:', paymentRecord);
-    };
-}
-
 // Add chart data export function for CSV
 window.exportChartData = function(chartType) {
     try {
@@ -5760,7 +5472,7 @@ window.startChartAutoRefresh = function(interval = 30000) { // Default 30 second
             }
         }, interval);
         
-        console.log(`Chart auto-refresh started with ${interval/1000} second interval`);
+        // Debug log removed
     } catch (error) {
         console.error('Error starting chart auto-refresh:', error);
     }
@@ -5772,7 +5484,7 @@ window.stopChartAutoRefresh = function() {
         if (window.chartAutoRefreshInterval) {
             clearInterval(window.chartAutoRefreshInterval);
             window.chartAutoRefreshInterval = null;
-            console.log('Chart auto-refresh stopped');
+            // Debug log removed
         }
     } catch (error) {
         console.error('Error stopping chart auto-refresh:', error);
@@ -5874,7 +5586,7 @@ window.removeDuplicateChartAutoRefreshSelectors = function() {
                         parentDiv.remove();
                     }
                 }
-                console.log(`Removed ${selectors.length - 1} duplicate chart auto-refresh interval selectors`);
+                // Debug log removed
             }
         }
     } catch (error) {

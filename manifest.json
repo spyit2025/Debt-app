@@ -108,7 +108,6 @@
     }
   },
   "permissions": [
-    "notifications",
     "background-sync"
   ],
   "display_override": ["minimal-ui", "browser", "standalone"],

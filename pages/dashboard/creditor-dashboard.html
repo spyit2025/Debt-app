@@ -4,14 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="แดชบอร์ดเจ้าหนี้ - ระบบจัดการหนี้">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <meta http-equiv="Last-Modified" content="0">
+    
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdn.datatables.net https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;
+        style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;
+        font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+        img-src 'self' data: blob: https:;
+        connect-src 'self' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdn.datatables.net https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        frame-src 'none';
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+    ">
     <title>ระบบจัดการหนี้ - แดชบอร์ดเจ้าหนี้</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -27,14 +41,13 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../../css/style.css?v=2.0">
-    <link rel="stylesheet" href="../../css/login.css?v=2.0">
-    <link rel="stylesheet" href="../../css/dashboard-styles.css?v=2.0">
-    <link rel="stylesheet" href="../../css/performance.css?v=2.0">
-    <link rel="stylesheet" href="../../css/responsive-nav.css?v=2.0">
-    <link rel="stylesheet" href="../../css/mobile-text-scaling.css?v=2.0">
-    <link rel="stylesheet" href="../../css/responsive-table.css?v=2.0">
-    <link rel="stylesheet" href="../../css/mobile-chrome-fix.css?v=2.2.0">
+    <link rel="stylesheet" href="/css/style.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/dashboard-styles.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/performance.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/responsive-nav.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/mobile-text-scaling.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/responsive-table.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/mobile-chrome-fix.css?v=4.0.0">
     
     <style>
         .dashboard-header {
@@ -825,7 +838,7 @@
                                 <i class="fas fa-user-circle fa-lg"></i>
                             </div>
                             <div class="user-details">
-                                <div class="text-white fw-semibold" id="userName">เก่งกาจ</div>
+                                <div class="text-white fw-semibold" id="creditorUserName">เก่งกาจ</div>
                                 <small class="text-white-50">เจ้าหนี้</small>
                             </div>
                         </div>
@@ -854,7 +867,7 @@
                                 <i class="fas fa-user-circle fa-2x text-white"></i>
                             </div>
                             <div class="user-details">
-                                <div class="text-white fw-semibold" id="userNameMobile">เก่งกาจ มิ่งมงคลจำรัส</div>
+                                <div class="text-white fw-semibold" id="creditorUserNameMobile">เก่งกาจ มิ่งมงคลจำรัส</div>
                                 <small class="text-white-50">เจ้าหนี้</small>
                             </div>
                         </div>
@@ -901,7 +914,7 @@
             <!-- Main Content -->
             <div class="col-12 main-content">
                 <!-- Dashboard Content -->
-                <div id="dashboard-content" class="content-section">
+                <div id="creditor-dashboard-content" class="content-section">
                     <!-- Stats Cards -->
                     <div class="row mb-4">
                         <div class="col-md-3">
@@ -987,12 +1000,12 @@
                                 <div class="card-body">
                                     <div class="row g-3">
                                         <div class="col-md-3">
-                                            <label for="filterDateFrom" class="form-label">วันที่เริ่มต้น</label>
-                                            <input type="date" class="form-control form-control-sm" id="filterDateFrom" onchange="applyChartFilters()">
+                                            <label for="creditorFilterDateFrom" class="form-label">วันที่เริ่มต้น</label>
+                                            <input type="date" class="form-control form-control-sm" id="creditorFilterDateFrom" onchange="applyChartFilters()">
                                         </div>
                                         <div class="col-md-3">
-                                            <label for="filterDateTo" class="form-label">วันที่สิ้นสุด</label>
-                                            <input type="date" class="form-control form-control-sm" id="filterDateTo" onchange="applyChartFilters()">
+                                            <label for="creditorFilterDateTo" class="form-label">วันที่สิ้นสุด</label>
+                                            <input type="date" class="form-control form-control-sm" id="creditorFilterDateTo" onchange="applyChartFilters()">
                                         </div>
                                         <div class="col-md-3">
                                             <label for="filterStatus" class="form-label">สถานะหนี้</label>
@@ -1063,7 +1076,7 @@
                                 </div>
                                 <div class="p-3">
                                     <div class="chart-container">
-                                        <canvas id="debtStatusChart"></canvas>
+                                        <canvas id="creditorDebtStatusChart"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -1156,15 +1169,18 @@
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <h4><i class="fas fa-list me-2"></i>รายการหนี้ทั้งหมด</h4>
                                 <button class="btn btn-primary" onclick="showAddDebtForm()">
-                                    <i class="fas fa-plus me-2"></i>เพิ่มหนี้ใหม่
+                                    <i class="fas fa-plus me-2"></i>เพิ่มข้อมูล
                                 </button>
                             </div>
                             <!-- Desktop Table View -->
                             <div class="debt-list desktop-table-container">
                                 <div class="p-3 border-bottom">
                                     <div class="row align-items-center">
+                                        <div class="col-md-1">
+                                            <h6 class="mb-0">รหัสลูกหนี้</h6>
+                                        </div>
                                         <div class="col-md-2">
-                                            <h6 class="mb-0">ลูกหนี้</h6>
+                                            <h6 class="mb-0">ชื่อลูกหนี้</h6>
                                         </div>
                                         <div class="col-md-2">
                                             <h6 class="mb-0">สถานะ</h6>
@@ -1179,14 +1195,11 @@
                                             <h6 class="mb-0">วันที่สร้าง</h6>
                                         </div>
                                         <div class="col-md-1 text-end">
-                                            <h6 class="mb-0">วันที่แก้ไข</h6>
-                                        </div>
-                                        <div class="col-md-1 text-end">
                                             <h6 class="mb-0">การดำเนินการ</h6>
                                         </div>
                                     </div>
                                 </div>
-                                <div id="allDebtsList">
+                                <div id="creditorAllDebtsList">
                                     <!-- All debts will be loaded here -->
                                 </div>
                             </div>
@@ -1200,11 +1213,11 @@
                 </div>
 
                 <!-- Installment Payment Modal -->
-                <div class="modal fade" id="installmentPaymentModal" tabindex="-1" aria-labelledby="installmentPaymentModalLabel">
+                <div class="modal fade" id="creditorInstallmentPaymentModal" tabindex="-1" aria-labelledby="creditorInstallmentPaymentModalLabel">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="installmentPaymentModalLabel">
+                                <h5 class="modal-title" id="creditorInstallmentPaymentModalLabel">
                                     <i class="fas fa-credit-card me-2"></i>ชำระหนี้งวด
                                 </h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1249,8 +1262,8 @@
                                             <input type="number" class="form-control" id="paymentAmount" value="3465.84" min="0" step="0.01">
                                         </div>
                                         <div class="mb-3">
-                                            <label for="paymentDate" class="form-label">วันที่ชำระ:</label>
-                                            <input type="date" class="form-control" id="paymentDate" value="2025-09-06">
+                                            <label for="installmentPaymentDate" class="form-label">วันที่ชำระ:</label>
+                                            <input type="date" class="form-control" id="installmentPaymentDate" value="2025-09-06">
                                         </div>
                                         <div class="mb-3">
                                             <label for="paymentTime" class="form-label">เวลา:</label>
@@ -1283,7 +1296,7 @@
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="addDebtModalLabel">
-                                    <i class="fas fa-plus me-2"></i>เพิ่มหนี้ใหม่
+                                    <i class="fas fa-plus me-2"></i>เพิ่มข้อมูล
                                 </h5>
                                 <button type="button" class="btn-close" onclick="closeAddDebtModal()" aria-label="ปิด"></button>
                             </div>
@@ -1396,6 +1409,21 @@
                                         </div>
                                         <div class="col-md-6">
                                             <div class="mb-3">
+                                                <label for="paymentDate" class="form-label">วันที่ชำระ (ทุกเดือน)</label>
+                                                <input type="number" class="form-control" id="paymentDate" min="1" max="31" placeholder="เช่น 30" title="วันที่ในเดือนที่จะชำระเงิน (1-31)">
+                                                <div class="form-text">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-info-circle me-1"></i>
+                                                        หากเดือนนั้นมีวันน้อยกว่า จะชำระในวันสุดท้ายของเดือน
+                                                        <br><span id="paymentDateExample" class="text-primary"></span>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="mb-3">
                                                 <label class="form-label">สรุปการคำนวณ</label>
                                                 <div id="calculationSummary" class="form-control-plaintext border rounded p-2 bg-light">
                                                     <small class="text-muted">กรอกข้อมูลเพื่อดูการคำนวณ</small>
@@ -1411,8 +1439,11 @@
                             </div>
                             <div class="modal-footer d-flex justify-content-end align-items-center">
                                 <div class="d-flex gap-2">
-                                    <button type="button" class="btn btn-primary btn-sm" onclick="submitNewDebt()">
-                                        <i class="fas fa-save me-1"></i>บันทึก
+                                    <button type="button" class="btn btn-success btn-sm" id="addNewDebtBtn" onclick="addNewDebt()">
+                                        <i class="fas fa-plus me-1"></i>เพิ่มข้อมูล
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-sm d-none" id="updateDebtBtn" onclick="updateExistingDebt()">
+                                        <i class="fas fa-save me-1"></i>อัพเดทข้อมูล
                                     </button>
                                     <button type="button" class="btn btn-secondary btn-sm" onclick="closeAddDebtModal()">
                                         <i class="fas fa-times me-1"></i>ยกเลิก
@@ -1542,12 +1573,12 @@
                                             </select>
                                         </div>
                                         <div class="col-md-3">
-                                            <label for="filterDateFrom" class="form-label">วันที่เริ่มต้น</label>
-                                            <input type="date" class="form-control" id="filterDateFrom">
+                                            <label for="creditorFilterDateFrom" class="form-label">วันที่เริ่มต้น</label>
+                                            <input type="date" class="form-control" id="creditorPaymentFilterDateFrom">
                                         </div>
                                         <div class="col-md-3">
-                                            <label for="filterDateTo" class="form-label">วันที่สิ้นสุด</label>
-                                            <input type="date" class="form-control" id="filterDateTo">
+                                            <label for="creditorFilterDateTo" class="form-label">วันที่สิ้นสุด</label>
+                                            <input type="date" class="form-control" id="creditorPaymentFilterDateTo">
                                         </div>
                                         <div class="col-md-3">
                                             <label for="filterAmount" class="form-label">จำนวนเงิน</label>
@@ -1582,16 +1613,16 @@
                                             <table id="mainPaymentHistoryTable" class="table table-hover responsive-table">
                                                 <thead class="table-light">
                                                     <tr>
-                                                        <th>วันที่ชำระ</th>
-                                                        <th>ลูกหนี้</th>
-                                                        <th>รหัสหนี้</th>
+                                                        <th>รหัสการชำระ</th>
+                                                        <th>วันที่และเวลาชำระ</th>
+                                                        <th>ชื่อลูกหนี้</th>
                                                         <th>งวดที่</th>
                                                         <th>จำนวนเงิน</th>
                                                         <th>หมายเหตุ</th>
                                                         <th>การดำเนินการ</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody id="paymentHistoryTableBody">
+                                                <tbody id="creditorPaymentHistoryTableBody">
                                                     <!-- Payment history will be loaded here -->
                                                 </tbody>
                                             </table>
@@ -1621,7 +1652,7 @@
                 </div>
 
                 <!-- Settings Content -->
-                <div id="settings-content" class="content-section hidden">
+                <div id="creditor-settings-content" class="content-section hidden">
                     <div class="row">
                         <div class="col-12">
                             <div class="stats-card">
@@ -1632,8 +1663,8 @@
                                             <div class="card-body">
                                                 <h5 class="card-title">ข้อมูลส่วนตัว</h5>
                                                 <div class="mb-3">
-                                                    <label for="displayName" class="form-label">ชื่อที่แสดง</label>
-                                                    <input type="text" class="form-control" id="displayName">
+                                                    <label for="creditorDisplayName" class="form-label">ชื่อที่แสดง</label>
+                                                    <input type="text" class="form-control" id="creditorDisplayName">
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="phoneNumber" class="form-label">เบอร์โทรศัพท์</label>
@@ -1670,7 +1701,7 @@
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
     
     <!-- DataTables Initialization -->
-    <script src="../../js/datatables-init.js?v=2.1.0"></script>
+    <script src="/js/datatables-init.js?v=4.0.0"></script>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
@@ -1678,19 +1709,34 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     
     <!-- Custom JS -->
-    <script src="../../js/performance.js?v=2.0"></script>
-    <script src="../../js/error-handler.js?v=2.0"></script>
-    <script src="../../js/firebase-config.js?v=2.0"></script>
-    <script src="../../js/firebase-utils.js?v=2.0"></script>
-    <script src="../../js/security-utils.js?v=2.0"></script>
-    <script src="../../js/alert-utils.js?v=2.0"></script>
-    <script src="../../js/auth.js?v=2.0"></script>
-    <script src="../../js/responsive-nav-enhanced.js?v=2.0"></script>
-    <script src="../../js/responsive-table.js?v=2.0"></script>
-    <script src="creditor-dashboard.js?v=2.1"></script>
+    <script src="/js/performance.js?v=4.0.0"></script>
+    <script src="/js/error-handler.js?v=4.0.0"></script>
+    <script src="/js/logger.js?v=4.0.0"></script>
+    <script src="/js/firebase-config.js?v=4.0.0"></script>
+    <script src="/js/firebase-utils.js?v=4.0.0"></script>
+    <script src="/js/security-utils.js?v=4.0.0"></script>
+    <script src="/js/alert-utils.js?v=4.0.0"></script>
+    <script src="/js/auth.js?v=4.0.0"></script>
+    <script src="/js/responsive-nav.js?v=4.0.0"></script>
+    <script src="/js/responsive-table.js?v=4.0.0"></script>
+    <script src="creditor-dashboard.js?v=3.0.0"></script>
     <script>
+        // Debug logging removed for production
+        
         // Simple navigation handler for immediate functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Fix URL hash issues
+            const currentHash = window.location.hash;
+            if (currentHash && currentHash.includes('//')) {
+                // Clean up malformed hash
+                const cleanHash = currentHash.replace(/\/+/g, '/').replace(/\/$/, '');
+                if (cleanHash === '#dashboard' || cleanHash === '#/dashboard') {
+                    window.location.hash = '#dashboard';
+                } else {
+                    window.location.hash = '';
+                }
+            }
+            
             // Setting up immediate navigation handlers
             const navLinks = document.querySelectorAll('.nav-link[data-event-bound="true"]');
             navLinks.forEach(function(link) {
@@ -1749,37 +1795,8 @@
                 toggleTableCards();
             }
 
-            // Sample data for demonstration
-            const samplePaymentData = [
-                {
-                    id: '1',
-                    paymentDate: '31/8/2568',
-                    debtorName: 'ทินกร ตาอิน',
-                    phone: '081-234-5678',
-                    debtCode: 'lqH01IZk...',
-                    installment: 'งวดที่ 2',
-                    amount: 3000,
-                    notes: 'ชำระตรงเวลา',
-                    debtId: 'lqH01IZkNsiRNrL0MvBU'
-                },
-                {
-                    id: '2',
-                    paymentDate: '31/7/2568',
-                    debtorName: 'ทินกร ตาอิน',
-                    phone: '081-234-5678',
-                    debtCode: 'lqH01IZk...',
-                    installment: 'งวดที่ 1',
-                    amount: 3000,
-                    notes: 'ชำระตรงเวลา',
-                    debtId: 'lqH01IZkNsiRNrL0MvBU'
-                }
-            ];
-
-            // Load sample data into table
-            loadPaymentHistoryData(samplePaymentData);
-
-            // Store reference for external access
-            window.paymentHistoryData = samplePaymentData;
+            // No sample data - load real data from Firebase
+            // Data will be loaded by loadPaymentHistory() function
         }
 
         // Function to load payment history data
@@ -1794,19 +1811,19 @@
             data.forEach(payment => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
+                    <td><code>${payment.paymentCode || payment.debtCode || 'P25680906-0001'}</code></td>
                     <td>${payment.date}</td>
                     <td>
                         <strong>${payment.debtorName}</strong>
                         <br><small class="text-muted">${payment.debtorInfo || ''}</small>
                     </td>
-                    <td><code>${payment.debtCode}</code></td>
                     <td>
                         <span class="badge bg-info">${payment.installment}</span>
                     </td>
                     <td>
                         <strong class="text-success">฿${payment.amount.toFixed(2)}</strong>
                     </td>
-                    <td>${payment.notes || '-'}</td>
+                    <td>${payment.note || payment.notes || '-'}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary me-1" onclick="editDebt('${payment.debtId}')">
                             <i class="fas fa-edit me-1"></i>แก้ไข
@@ -1828,6 +1845,21 @@
         // Function to view debt details (for demo)
         function viewDebtDetails(debtId) {
             alert('ดูรายละเอียดหนี้: ' + debtId);
+        }
+    </script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        // Service Worker registered successfully
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
         }
     </script>
 </body>

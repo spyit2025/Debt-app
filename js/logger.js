@@ -50,7 +50,7 @@ class Logger {
         if (!this.shouldLog('debug')) return;
         
         const logEntry = this.formatMessage('debug', message, data);
-        console.log(`[DEBUG] ${message}`, data || '');
+        // Debug logging disabled for production
         
         // Send to analytics in production
         if (!this.isDevelopment) {

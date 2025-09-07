@@ -40,6 +40,15 @@ const server = http.createServer((req, res) => {
     const parsedUrl = url.parse(req.url);
     let pathname = parsedUrl.pathname;
     
+    // Fix nested paths issue
+    if (pathname.includes('/pages/dashboard/pages/dashboard/')) {
+        // Redirect to correct path
+        const correctPath = pathname.replace(/\/pages\/dashboard\/pages\/dashboard\/.*/, '/pages/dashboard/debtor-dashboard.html');
+        res.writeHead(302, { 'Location': correctPath });
+        res.end();
+        return;
+    }
+    
     // Default to index.html for root
     if (pathname === '/') {
         pathname = '/index.html';
@@ -64,6 +73,13 @@ const server = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+    
+    // DISABLE ALL CACHING - Force no cache for development
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Last-Modified', new Date().toUTCString());
+    res.setHeader('ETag', '"' + Date.now() + '"');
     
     // Handle OPTIONS requests
     if (req.method === 'OPTIONS') {
@@ -150,7 +166,7 @@ function setSecurityHeaders(res) {
 // Rate limiting (simple in-memory implementation)
 const rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW = isProduction ? 15 * 60 * 1000 : 5 * 60 * 1000; // 15 minutes in production, 5 minutes in development
-const RATE_LIMIT_MAX_REQUESTS = isProduction ? 100 : 2000; // Much more lenient in development
+const RATE_LIMIT_MAX_REQUESTS = isProduction ? 100 : 10000; // Very lenient in development
 
 function checkRateLimit(ip) {
     const now = Date.now();
@@ -188,7 +204,7 @@ setInterval(() => {
 }, 5 * 60 * 1000); // Clean up every 5 minutes
 
 server.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}/`);
-    console.log(`Environment: ${isProduction ? 'Production' : 'Development'}`);
-    console.log('Press Ctrl+C to stop the server');
+    // Debug log removed
+    // Debug log removed
+    // Debug log removed
 });

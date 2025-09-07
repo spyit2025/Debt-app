@@ -109,7 +109,7 @@ class ErrorHandler {
             return;
         }
 
-        // Create error notification
+        // Create error message
         this.createErrorNotification(errorInfo);
     }
 
@@ -128,9 +128,9 @@ class ErrorHandler {
         );
     }
 
-    // Create error notification
+    // Create error message
     createErrorNotification(errorInfo) {
-        // Check if notification already exists
+        // Check if error message already exists
         const existingNotification = document.getElementById('error-notification');
         if (existingNotification) {
             return;
@@ -200,7 +200,7 @@ class ErrorHandler {
         return message;
     }
 
-    // Show toast notification
+    // Show toast message
     showToast(message, type = 'info') {
         const toast = document.createElement('div');
         toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} border-0`;

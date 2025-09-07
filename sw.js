@@ -1,12 +1,12 @@
 // Service Worker for Debt Management System
-const CACHE_NAME = 'debt-app-v2.2.1';
-const STATIC_CACHE = 'static-v2.2.1';
-const DYNAMIC_CACHE = 'dynamic-v2.2.1';
+const CACHE_NAME = 'debt-app-v2.2.2';
+const STATIC_CACHE = 'static-v2.2.2';
+const DYNAMIC_CACHE = 'dynamic-v2.2.2';
 
 // Add error handling and logging
 const log = (message, data = null) => {
     if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1') {
-        console.log(`[SW] ${message}`, data || '');
+        // Debug log removed
     }
 };
 
@@ -24,19 +24,29 @@ function isAllowedDomain(url) {
             'fonts.googleapis.com',
             'fonts.gstatic.com',
             'code.jquery.com',
-            'cdn.datatables.net'
+            'cdn.datatables.net',
+            'firebaseapp.com',
+            'googleapis.com',
+            'gstatic.com'
         ];
         
-        return allowedDomains.some(domain => urlObj.hostname.includes(domain));
+        // Block external domains that are not in the allowed list
+        const isExternal = !urlObj.hostname.includes('localhost') && 
+                          !urlObj.hostname.includes('127.0.0.1') && 
+                          !urlObj.hostname.includes(window.location.hostname);
+        
+        if (isExternal && !allowedDomains.some(domain => urlObj.hostname.includes(domain))) {
+            return false;
+        }
+        
+        return true;
     } catch (error) {
         return false;
     }
 }
 
-// Files to cache immediately
+// Files to cache immediately - only static assets, not HTML pages
 const STATIC_FILES = [
-    '/',
-    'index.html',
     'css/style.css',
     'css/login.css',
     'css/dashboard-styles.css',
@@ -51,11 +61,6 @@ const STATIC_FILES = [
     'js/login.js',
     'js/register.js',
     'js/responsive-nav.js',
-    'pages/auth/register.html',
-    'pages/dashboard/creditor-dashboard.html',
-    'pages/dashboard/debtor-dashboard.html',
-    'pages/dashboard/creditor-dashboard.js',
-    'pages/dashboard/debtor-dashboard.js',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
     'https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap',
@@ -93,7 +98,7 @@ self.addEventListener('activate', event => {
                 return Promise.all(
                     cacheNames.map(cacheName => {
                         // Delete all old caches that don't match current version
-                        if (!cacheName.includes('v2.2.1')) {
+                        if (!cacheName.includes('v2.2.2')) {
                             log('Deleting old cache:', cacheName);
                             return caches.delete(cacheName);
                         }
@@ -103,6 +108,25 @@ self.addEventListener('activate', event => {
             })
             .then(() => {
                 log('Service Worker activated successfully');
+                // Clear any malformed cache entries
+                return caches.open(DYNAMIC_CACHE)
+                    .then(cache => {
+                        return cache.keys()
+                            .then(requests => {
+                                return Promise.all(
+                                    requests.map(request => {
+                                        // Remove any cached HTML pages that might cause issues
+                                        if (request.url.includes('dashboard') && request.url.includes('index.html')) {
+                                            log('Removing problematic cache entry:', request.url);
+                                            return cache.delete(request);
+                                        }
+                                        return Promise.resolve();
+                                    })
+                                );
+                            });
+                    });
+            })
+            .then(() => {
                 return self.clients.claim();
             })
             .catch(error => {
@@ -129,9 +153,28 @@ self.addEventListener('fetch', event => {
     // Handle navigation requests
     if (request.mode === 'navigate') {
         event.respondWith(
-            caches.match('index.html')
+            fetch(request)
                 .then(response => {
-                    return response || fetch(request);
+                    // Only cache successful responses
+                    if (response.status === 200) {
+                        const responseClone = response.clone();
+                        caches.open(DYNAMIC_CACHE)
+                            .then(cache => {
+                                cache.put(request, responseClone);
+                            });
+                    }
+                    return response;
+                })
+                .catch(error => {
+                    // If network fails, try cache
+                    return caches.match(request)
+                        .then(cachedResponse => {
+                            if (cachedResponse) {
+                                return cachedResponse;
+                            }
+                            // If no cache, return index.html as fallback
+                            return caches.match('index.html');
+                        });
                 })
         );
         return;
@@ -162,6 +205,10 @@ self.addEventListener('fetch', event => {
                         .catch(error => {
                             // If fetch fails due to CSP, just return the request without caching
                             console.warn('Failed to fetch resource:', request.url, error);
+                            // Don't try to fetch again if it's a CSP error
+                            if (error.message.includes('CSP') || error.message.includes('Content Security Policy')) {
+                                return new Response('Resource blocked by CSP', { status: 403 });
+                            }
                             return fetch(request);
                         });
                 })
@@ -184,9 +231,23 @@ self.addEventListener('fetch', event => {
                 return response;
             })
             .catch(error => {
-                // If fetch fails due to CSP, try cache first
+                // If fetch fails, try cache first
                 console.warn('Network request failed:', request.url, error);
-                return caches.match(request);
+                return caches.match(request)
+                    .then(cachedResponse => {
+                        if (cachedResponse) {
+                            return cachedResponse;
+                        }
+                        // If no cache and it's an HTML page, return index.html as fallback
+                        if (request.destination === 'document' || request.url.endsWith('.html')) {
+                            return caches.match('index.html');
+                        }
+                        // For other requests, return a basic error response
+                        return new Response('Resource not available offline', { 
+                            status: 503, 
+                            statusText: 'Service Unavailable' 
+                        });
+                    });
             })
     );
 });
@@ -210,46 +271,12 @@ async function doBackgroundSync() {
     }
 }
 
-// Push notification handling
-self.addEventListener('push', event => {
-    if (event.data) {
-        const data = event.data.json();
-        const options = {
-            body: data.body,
-            icon: '/favicon.ico',
-            badge: '/favicon.ico',
-            vibrate: [100, 50, 100],
-            data: {
-                dateOfArrival: Date.now(),
-                primaryKey: 1
-            },
-            actions: [
-                {
-                    action: 'explore',
-                    title: 'ดูรายละเอียด',
-                    icon: '/favicon.ico'
-                },
-                {
-                    action: 'close',
-                    title: 'ปิด',
-                    icon: '/favicon.ico'
-                }
-            ]
-        };
+// Push notification handling - Removed - notifications not used
+// self.addEventListener('push', event => {
+//     // Removed - notifications not used
+// });
 
-        event.waitUntil(
-            self.registration.showNotification(data.title, options)
-        );
-    }
-});
-
-// Notification click handling
-self.addEventListener('notificationclick', event => {
-    event.notification.close();
-
-    if (event.action === 'explore') {
-        event.waitUntil(
-            clients.openWindow('/pages/dashboard/creditor-dashboard.html')
-        );
-    }
-});
+// Notification click handling - Removed - notifications not used
+// self.addEventListener('notificationclick', event => {
+//     // Removed - notifications not used
+// });

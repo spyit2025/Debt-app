@@ -4,10 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <meta name="description" content="ลงทะเบียนระบบจัดการหนี้">
+    
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdn.datatables.net https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;
+        style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;
+        font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+        img-src 'self' data: blob: https:;
+        connect-src 'self' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdn.datatables.net https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        frame-src 'none';
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+    ">
     <title>ระบบจัดการหนี้ - ลงทะเบียน</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -19,11 +37,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../../css/style.css?v=2.1.0">
-    <link rel="stylesheet" href="../../css/login.css?v=2.1.0">
-    <link rel="stylesheet" href="../../css/performance.css?v=2.1.0">
-    <link rel="stylesheet" href="../../css/responsive-nav.css?v=2.1.0">
-    <link rel="stylesheet" href="../../css/mobile-chrome-fix.css?v=2.2.0">
+    <link rel="stylesheet" href="/css/style.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/login.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/performance.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/responsive-nav.css?v=4.0.0">
+    <link rel="stylesheet" href="/css/mobile-chrome-fix.css?v=4.0.0">
 </head>
 <body>
     <!-- Simple Header for Register Page -->
@@ -35,12 +53,12 @@
             </a>
             
             <!-- Only show navigation menu on dashboard pages, not on register page -->
-            <div class="d-none" id="dashboardNav">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <div class="d-none" id="registerDashboardNav">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#registerNavbarNav" aria-controls="registerNavbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 
-                <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="collapse navbar-collapse" id="registerNavbarNav">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
                             <a class="nav-link active" href="#dashboard" data-event-bound="true">
@@ -209,21 +227,24 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     
     <!-- Custom JS -->
-    <script src="../../js/performance.js?v=2.1.0"></script>
-    <script src="../../js/error-handler.js?v=2.1.0"></script>
-    <script src="../../js/firebase-config.js?v=2.1.0"></script>
-    <script src="../../js/firebase-utils.js?v=2.1.0"></script>
-    <script src="../../js/security-utils.js?v=2.1.0"></script>
-    <script src="../../js/auth.js?v=2.1.0"></script>
-    <script src="../../js/login.js?v=2.1.0"></script>
-    <script src="../../js/register.js?v=2.1.0"></script>
-    <script src="../../js/responsive-nav.js?v=2.1.0"></script>
+    <script src="/js/performance.js?v=4.0.0"></script>
+    <script src="/js/error-handler.js?v=4.0.0"></script>
+    <script src="/js/logger.js?v=4.0.0"></script>
+    <script src="/js/firebase-config.js?v=4.0.0"></script>
+    <script src="/js/firebase-utils.js?v=4.0.0"></script>
+    <script src="/js/security-utils.js?v=4.0.0"></script>
+    <script src="/js/auth.js?v=4.0.0"></script>
+    <script src="/js/login.js?v=4.0.0"></script>
+    <script src="/js/register.js?v=4.0.0"></script>
+    <script src="/js/responsive-nav.js?v=4.0.0"></script>
     
     <!-- Register Page Specific JS -->
     <script>
+        // Debug logging removed for production
+        
         // Hide navigation menu on register page
         document.addEventListener('DOMContentLoaded', function() {
-            const dashboardNav = document.getElementById('dashboardNav');
+            const dashboardNav = document.getElementById('registerDashboardNav');
             if (dashboardNav) {
                 dashboardNav.classList.add('d-none');
             }
@@ -239,7 +260,7 @@
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then(registration => {
-                        console.log('Service Worker registered successfully:', registration);
+                        // Service Worker registered successfully
                     })
                     .catch(error => {
                         console.error('Service Worker registration failed:', error);

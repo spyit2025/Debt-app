@@ -225,7 +225,7 @@ class FirebaseUtils {
         try {
             const result = await operation();
             const end = performance.now();
-            console.log(`${name} took ${(end - start).toFixed(2)}ms`);
+            // Debug log removed
             return result;
         } catch (error) {
             const end = performance.now();

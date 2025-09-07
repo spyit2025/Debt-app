@@ -28,40 +28,20 @@ const authModule = {
         const maxRetries = 2;
         
         try {
-            console.log(`Sign in attempt ${retryCount + 1}/${maxRetries + 1} for email: ${email}`);
-            
             // Check network connection
             if (!navigator.onLine) {
                 throw new Error('ไม่มีการเชื่อมต่ออินเทอร์เน็ต กรุณาตรวจสอบการเชื่อมต่อและลองใหม่');
             }
             
-            console.log('Network status:', navigator.onLine);
-            console.log('Connection type:', navigator.connection ? navigator.connection.effectiveType : 'unknown');
-            
             // Try Firebase authentication
             if (window.firebaseUtils && window.firebaseUtils.isFirebaseReady()) {
                 const { auth, db } = getFirebaseInstances();
-                console.log('Firebase instances obtained successfully');
-                console.log('Auth instance:', auth);
-                console.log('DB instance:', db);
-                
-                // Check Firebase configuration
-                console.log('Firebase app name:', auth.app.name);
-                console.log('Firebase project ID:', auth.app.options.projectId);
-                console.log('Firebase auth domain:', auth.app.options.authDomain);
-                
-                // ลด timeout และเพิ่ม retry mechanism
-                console.log('Starting authentication...');
                 
                 // เพิ่ม progress tracking
                 let authProgress = 0;
                 const progressInterval = setInterval(() => {
                     authProgress += 10;
-                    console.log(`Authentication progress: ${authProgress}% (${authProgress * 0.3}s)`);
                 }, 3000);
-                
-                // ลองใช้วิธีอื่น - ใช้ Firebase Auth กับ custom retry
-                console.log('Attempting Firebase authentication...');
                 
                 // ลองใช้วิธีอื่น - ใช้ setTimeout แทน Promise.race
                 let authCompleted = false;
@@ -72,7 +52,6 @@ const authModule = {
                     .then(result => {
                         authCompleted = true;
                         authResult = result;
-                        console.log('Firebase auth completed successfully');
                     })
                     .catch(error => {
                         authCompleted = true;
@@ -88,8 +67,6 @@ const authModule = {
                     }
                 }, 30000);
                 
-                console.log('Waiting for authentication result...');
-                
                 // รอให้ auth เสร็จ
                 await authPromise;
                 clearTimeout(timeoutId);
@@ -101,18 +78,15 @@ const authModule = {
                 const userCredential = authResult;
                 clearInterval(progressInterval);
                 const user = userCredential.user;
-                console.log('Authentication successful for user:', user.uid);
             
                 try {
                     // Get user data from Firestore with timeout
-                    console.log('Fetching user data from Firestore...');
                     const userDocPromise = db.collection('users').doc(user.uid).get();
                     const userDocTimeoutPromise = new Promise((_, reject) => 
                         setTimeout(() => reject(new Error('การโหลดข้อมูลผู้ใช้ใช้เวลานานเกินไป กรุณาตรวจสอบสัญญาณอินเทอร์เน็ตและลองใหม่')), 20000)
                     );
                     
                     const userDoc = await Promise.race([userDocPromise, userDocTimeoutPromise]);
-                    console.log('User data fetched successfully');
                     
                     if (userDoc.exists) {
                         const userData = userDoc.data();
@@ -148,7 +122,6 @@ const authModule = {
                     
                     // ถ้า Firestore error และยังไม่เกิน retry limit ให้ลองใหม่
                     if (retryCount < maxRetries && (firestoreError.message.includes('ใช้เวลานานเกินไป') || firestoreError.code === 'unavailable')) {
-                        console.log(`Retrying Firestore query (attempt ${retryCount + 1}/${maxRetries})`);
                         await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1))); // Wait before retry
                         return this.signIn(email, password, retryCount + 1);
                     }
@@ -162,9 +135,6 @@ const authModule = {
             }
         } catch (error) {
             console.error('Sign in error:', error);
-            console.error('Error code:', error.code);
-            console.error('Error message:', error.message);
-            console.error('Error stack:', error.stack);
             throw error;
         }
     },
@@ -239,15 +209,35 @@ const authModule = {
                     
                     // ป้องกัน redirect loop โดยตรวจสอบให้แน่ใจ
                     if (!isRedirecting && userType) {
-                        if (userType === 'creditor' && !currentPage.includes('creditor-dashboard')) {
+                        // ตรวจสอบว่าอยู่ในหน้า dashboard แล้วหรือไม่
+                        const isOnDashboard = currentPage.includes('dashboard');
+                        const isCorrectDashboard = (userType === 'creditor' && currentPage.includes('creditor-dashboard')) ||
+                                                 (userType === 'debtor' && currentPage.includes('debtor-dashboard'));
+                        
+                        // ตรวจสอบว่าอยู่ในหน้า login หรือไม่
+                        const isOnLoginPage = currentPage.includes('index.html') || currentPage === '/' || currentPage.endsWith('/');
+                        
+                        if (isOnLoginPage) {
+                            // ถ้าอยู่ในหน้า login ให้ redirect ไป dashboard
                             sessionStorage.setItem('isRedirecting', 'true');
                             setTimeout(() => {
-                                window.location.replace('pages/dashboard/creditor-dashboard.html');
+                                if (userType === 'creditor') {
+                                    window.location.replace('/pages/dashboard/creditor-dashboard.html');
+                                } else if (userType === 'debtor') {
+                                    window.location.replace('/pages/dashboard/debtor-dashboard.html');
+                                }
+                                sessionStorage.removeItem('isRedirecting');
                             }, 100);
-                        } else if (userType === 'debtor' && !currentPage.includes('debtor-dashboard')) {
+                        } else if (isOnDashboard && !isCorrectDashboard) {
+                            // ถ้าอยู่ในหน้า dashboard แต่ไม่ใช่ dashboard ที่ถูกต้อง
                             sessionStorage.setItem('isRedirecting', 'true');
                             setTimeout(() => {
-                                window.location.replace('pages/dashboard/debtor-dashboard.html');
+                                if (userType === 'creditor') {
+                                    window.location.replace('/pages/dashboard/creditor-dashboard.html');
+                                } else if (userType === 'debtor') {
+                                    window.location.replace('/pages/dashboard/debtor-dashboard.html');
+                                }
+                                sessionStorage.removeItem('isRedirecting');
                             }, 100);
                         }
                     }
@@ -265,11 +255,14 @@ const authModule = {
                     const currentPage = window.location.pathname;
                     const isRedirecting = sessionStorage.getItem('isRedirecting');
                     
-                    if (!isRedirecting && !currentPage.includes('index.html') && !currentPage.includes('register.html')) {
+                    // ตรวจสอบว่าอยู่ในหน้า login หรือ register แล้วหรือไม่
+                    const isOnLoginPage = currentPage.includes('index.html') || currentPage.includes('register.html');
+                    
+                    if (!isRedirecting && !isOnLoginPage) {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
-                            const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
-                            window.location.replace(baseUrl + 'index.html');
+                            // ใช้ path ที่แน่นอนแทนการคำนวณ
+                            window.location.replace('/index.html');
                         }, 100);
                     }
                 }
@@ -291,6 +284,7 @@ const authModule = {
                 setTimeout(() => {
                     const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
                     window.location.replace(baseUrl + 'index.html');
+                    sessionStorage.removeItem('isRedirecting');
                 }, 100);
             }
             return false;
@@ -299,19 +293,35 @@ const authModule = {
         const currentPage = window.location.pathname;
         
         if (!isRedirecting) {
-            if (userType === 'creditor' && !currentPage.includes('creditor')) {
+            const isOnDashboard = currentPage.includes('dashboard');
+            const isCorrectDashboard = (userType === 'creditor' && currentPage.includes('creditor-dashboard')) ||
+                                     (userType === 'debtor' && currentPage.includes('debtor-dashboard'));
+            
+            // ตรวจสอบว่าอยู่ในหน้า login หรือไม่
+            const isOnLoginPage = currentPage.includes('index.html') || currentPage === '/' || currentPage.endsWith('/');
+            
+            if (isOnLoginPage) {
+                // ถ้าอยู่ในหน้า login ให้ redirect ไป dashboard
                 sessionStorage.setItem('isRedirecting', 'true');
                 setTimeout(() => {
-                    const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
-                    window.location.replace(baseUrl + 'creditor-dashboard.html');
+                    if (userType === 'creditor') {
+                        window.location.replace('/pages/dashboard/creditor-dashboard.html');
+                    } else if (userType === 'debtor') {
+                        window.location.replace('/pages/dashboard/debtor-dashboard.html');
+                    }
+                    sessionStorage.removeItem('isRedirecting');
                 }, 100);
                 return false;
-            }
-            
-            if (userType === 'debtor' && !currentPage.includes('debtor')) {
+            } else if (isOnDashboard && !isCorrectDashboard) {
+                // ถ้าอยู่ในหน้า dashboard แต่ไม่ใช่ dashboard ที่ถูกต้อง
                 sessionStorage.setItem('isRedirecting', 'true');
                 setTimeout(() => {
-                    window.location.replace('debtor-dashboard.html');
+                    if (userType === 'creditor') {
+                        window.location.replace('/pages/dashboard/creditor-dashboard.html');
+                    } else if (userType === 'debtor') {
+                        window.location.replace('/pages/dashboard/debtor-dashboard.html');
+                    }
+                    sessionStorage.removeItem('isRedirecting');
                 }, 100);
                 return false;
             }

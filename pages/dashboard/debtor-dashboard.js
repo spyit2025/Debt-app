@@ -4,6 +4,34 @@ let isDataLoaded = false;
 let isRedirecting = false;
 let eventListenersSetup = false;
 
+// ฟังก์ชันแปลงรหัสลูกหนี้ให้อ่านง่าย
+function formatDebtorId(debtorId) {
+    if (!debtorId || debtorId === 'ไม่ระบุรหัสลูกหนี้') {
+        return '<small class="text-muted">ไม่ระบุรหัสลูกหนี้</small>';
+    }
+    
+    // ถ้าเป็น Firebase UID (ยาว 28 ตัวอักษร) ให้แปลงเป็นรูปแบบที่อ่านง่าย
+    if (debtorId.length === 28) {
+        // ใช้ 6 ตัวอักษรแรก + 4 ตัวอักษรท้าย + หมายเลขที่คำนวณจาก UID
+        const prefix = debtorId.substring(0, 6);
+        const suffix = debtorId.substring(24, 28);
+        
+        // สร้างหมายเลขที่สม่ำเสมอจาก UID โดยใช้ charCodeAt
+        let hash = 0;
+        for (let i = 0; i < debtorId.length; i++) {
+            const char = debtorId.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        const consistentNum = Math.abs(hash % 9999).toString().padStart(4, '0');
+        
+        return `<small class="text-muted">D${prefix}-${consistentNum}</small>`;
+    }
+    
+    // ถ้าไม่ใช่ Firebase UID ให้แสดงตามเดิม
+    return `<small class="text-muted">${debtorId}</small>`;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     
     if (isInitialized) return;
@@ -24,13 +52,14 @@ document.addEventListener('DOMContentLoaded', function() {
     window.logout = logout;
     window.makePayment = makePayment;
     window.downloadReport = downloadReport;
-    window.notificationSettings = notificationSettings;
+    // window.notificationSettings = notificationSettings; // Removed - notifications not used
     window.requestHelp = requestHelp;
     window.viewDebtDetails = viewDebtDetails;
     window.viewPaymentDetails = viewPaymentDetails;
     window.saveSettings = saveSettings;
     window.submitPayment = submitPayment;
     window.showPaymentHistoryModal = showPaymentHistoryModal;
+    window.syncExistingPaymentsToDebtHistory = syncExistingPaymentsToDebtHistory;
     
     // ตรวจสอบ URL hash และนำทางตามนั้น
     const hash = window.location.hash || '#dashboard';
@@ -125,28 +154,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ตรวจสอบว่าผู้ใช้ยืนยันตัวตนและเป็นลูกหนี้หรือไม่
 function checkAuth() {
-    window.firebaseAuth.onAuthStateChanged(function(user) {
-        if (user) {
-            isDataLoaded = false; // รีเซ็ตแฟล็กข้อมูลที่โหลดแล้วสำหรับผู้ใช้ใหม่
-            // ตรวจสอบว่าผู้ใช้เป็นลูกหนี้หรือไม่
-            checkUserType(user.uid);
+    // ตรวจสอบว่ามีการ redirect อยู่แล้วหรือไม่
+    const isRedirectingFlag = sessionStorage.getItem('isRedirecting');
+    if (isRedirectingFlag === 'true') {
+        return; // ไม่ต้องทำอะไรถ้ากำลัง redirect อยู่
+    }
+    
+    // Wait for Firebase to be ready before checking auth state
+    let authCheckAttempts = 0;
+    const maxAuthCheckAttempts = 10;
+    
+    function waitForAuthReady() {
+        authCheckAttempts++;
+        
+        // Check if Firebase Auth is ready
+        if (window.firebaseAuth.currentUser !== undefined || authCheckAttempts >= maxAuthCheckAttempts) {
+            // Firebase Auth is ready or we've tried enough times
+            window.firebaseAuth.onAuthStateChanged(function(user) {
+                if (user) {
+                    isDataLoaded = false; // รีเซ็ตแฟล็กข้อมูลที่โหลดแล้วสำหรับผู้ใช้ใหม่
+                    // ตรวจสอบว่าผู้ใช้เป็นลูกหนี้หรือไม่
+                    checkUserType(user.uid);
+                } else {
+                    isDataLoaded = false;
+                    // เปลี่ยนเส้นทางไปหน้าเข้าสู่ระบบหากไม่ยืนยันตัวตน
+                    const currentRedirecting = sessionStorage.getItem('isRedirecting');
+                    if (currentRedirecting !== 'true') {
+                        sessionStorage.setItem('isRedirecting', 'true');
+                        setTimeout(() => {
+                            window.location.href = '/index.html';
+                        }, 100);
+                    }
+                }
+            });
         } else {
-            isDataLoaded = false;
-            // เปลี่ยนเส้นทางไปหน้าเข้าสู่ระบบหากไม่ยืนยันตัวตน
-            if (!isRedirecting) {
-                isRedirecting = true;
-                sessionStorage.setItem('isRedirecting', 'true');
-                setTimeout(() => {
-                    window.location.href = '../../index.html';
-                }, 100);
-            }
+            // Firebase Auth not ready yet, wait a bit more
+            setTimeout(waitForAuthReady, 200);
         }
-    });
+    }
+    
+    waitForAuthReady();
 }
 
 // ตรวจสอบประเภทผู้ใช้จาก Firestore
 function checkUserType(userId) {
-    if (isDataLoaded || isRedirecting) return; // ป้องกันการโหลดและเปลี่ยนเส้นทางหลายครั้ง
+    const isRedirectingFlag = sessionStorage.getItem('isRedirecting');
+    if (isDataLoaded || isRedirectingFlag === 'true') return; // ป้องกันการโหลดและเปลี่ยนเส้นทางหลายครั้ง
     
     window.firebaseDb.collection('users').doc(userId).get()
         .then(function(doc) {
@@ -168,17 +221,16 @@ function checkUserType(userId) {
                     isDataLoaded = true; // ทำเครื่องหมายว่าโหลดแล้ว
                 } else {
                     // เปลี่ยนเส้นทางไปแดชบอร์ดที่เหมาะสม
-                    if (userData.userType === 'creditor' && !isRedirecting) {
-                        isRedirecting = true;
+                    const currentRedirecting = sessionStorage.getItem('isRedirecting');
+                    if (userData.userType === 'creditor' && currentRedirecting !== 'true') {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
-                            window.location.href = 'creditor-dashboard.html';
+                            window.location.href = '/pages/dashboard/creditor-dashboard.html';
                         }, 100);
-                    } else if (!isRedirecting) {
-                        isRedirecting = true;
+                    } else if (currentRedirecting !== 'true') {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
-                            window.location.href = '../../index.html';
+                            window.location.href = '/index.html';
                         }, 100);
                     }
                 }
@@ -186,11 +238,11 @@ function checkUserType(userId) {
                 if (window.logger) {
                     window.logger.error('ไม่พบเอกสารผู้ใช้');
                 }
-                if (!isRedirecting) {
-                    isRedirecting = true;
+                const currentRedirecting = sessionStorage.getItem('isRedirecting');
+                if (currentRedirecting !== 'true') {
                     sessionStorage.setItem('isRedirecting', 'true');
                     setTimeout(() => {
-                        window.location.href = '../../index.html';
+                        window.location.href = '/index.html';
                     }, 100);
                 }
             }
@@ -199,11 +251,11 @@ function checkUserType(userId) {
             if (window.logger) {
                 window.logger.error('ข้อผิดพลาดในการตรวจสอบประเภทผู้ใช้:', error);
             }
-            if (!isRedirecting) {
-                isRedirecting = true;
+            const currentRedirecting = sessionStorage.getItem('isRedirecting');
+            if (currentRedirecting !== 'true') {
                 sessionStorage.setItem('isRedirecting', 'true');
                 setTimeout(() => {
-                    window.location.href = '../../index.html';
+                    window.location.href = '/index.html';
                 }, 100);
             }
         });
@@ -238,19 +290,44 @@ function loadDashboardData() {
         
         
         let totalDebt = 0;
+        let totalPrincipal = 0;
+        let totalInterest = 0;
         let paidAmount = 0;
         let pendingDebts = 0;
         let overdueDebts = 0;
+        let totalInstallments = 0;
+        let paidInstallments = 0;
+        let remainingInstallments = 0;
+        let totalMonthlyPayment = 0;
+        let debtCount = 0;
         
         querySnapshot.forEach(function(doc) {
             const debt = doc.data();
-            const debtAmount = debt.amount || 0;
-            totalDebt += debtAmount;
+            const debtAmount = debt.totalAmount || debt.amount || 0;
+            const principal = debt.principal || 0;
+            const interest = debt.totalInterest || 0;
+            const installments = debt.installmentMonths || 0;
+            const monthlyPayment = debt.monthlyPayment || 0;
             
-            // คำนวณยอดที่ชำระแล้วจาก payment history
-            const paymentHistory = debt.paymentHistory || [];
-            const totalPaid = paymentHistory.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+            totalDebt += debtAmount;
+            totalPrincipal += principal;
+            totalInterest += interest;
+            totalInstallments += installments;
+            totalMonthlyPayment += monthlyPayment;
+            debtCount++;
+            
+            // คำนวณยอดที่ชำระแล้วจาก payment history หรือ totalPaidAmount
+            let totalPaid = 0;
+            if (debt.paymentHistory && Array.isArray(debt.paymentHistory) && debt.paymentHistory.length > 0) {
+                totalPaid = debt.paymentHistory.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+            } else if (debt.totalPaidAmount !== undefined && debt.totalPaidAmount !== null) {
+                totalPaid = debt.totalPaidAmount;
+            }
             paidAmount += totalPaid;
+            
+            // คำนวณงวดที่ชำระแล้ว
+            const paidInstallmentCount = debt.paidInstallments || 0;
+            paidInstallments += paidInstallmentCount;
             
             // นับสถานะหนี้
             if (debt.status === 'paid') {
@@ -265,12 +342,25 @@ function loadDashboardData() {
             }
         });
         
+        // คำนวณงวดที่เหลือ
+        remainingInstallments = totalInstallments - paidInstallments;
         
-        // อัปเดตสถิติ
+        // คำนวณงวดละเฉลี่ย
+        const avgMonthlyPayment = debtCount > 0 ? totalMonthlyPayment / debtCount : 0;
+        
+        
+        // อัปเดตสถิติหลัก
         document.getElementById('debtorTotalDebt').textContent = totalDebt.toLocaleString();
         document.getElementById('paidAmount').textContent = paidAmount.toLocaleString();
         document.getElementById('debtorPendingDebts').textContent = pendingDebts;
         document.getElementById('debtorOverdueDebts').textContent = overdueDebts;
+        
+        // อัปเดตข้อมูลเพิ่มเติม
+        document.getElementById('totalPrincipal').textContent = totalPrincipal.toLocaleString();
+        document.getElementById('totalInterest').textContent = totalInterest.toLocaleString();
+        document.getElementById('paidInstallments').textContent = paidInstallments;
+        document.getElementById('remainingInstallments').textContent = remainingInstallments;
+        document.getElementById('totalInstallments').textContent = totalInstallments;
          
          // อัปเดตกราฟ
          updateAllCharts();
@@ -347,23 +437,27 @@ function loadAllUserDebts() {
             const debt = doc.data();
             const debtId = doc.id;
             
-            // Data for DataTable - ตรวจสอบให้แน่ใจว่ามี 5 คอลัมน์
+            // Data for DataTable - ตรวจสอบให้แน่ใจว่ามี 6 คอลัมน์
             const dueDate = debt.dueDate ? new Date(debt.dueDate.toDate()).toLocaleDateString('th-TH') : '-';
             const status = getStatusBadge(debt.status);
             
+            const debtorId = debt.debtorId || window.firebaseAuth.currentUser?.uid || 'ไม่ระบุรหัสลูกหนี้';
             const rowData = [
-                debt.creditorName || 'ไม่ระบุชื่อเจ้าหนี้',
+                formatDebtorId(debtorId),
                 debt.description || 'ไม่มีคำอธิบาย',
                 status,
                 `฿${(debt.amount || 0).toLocaleString()}`,
-                dueDate
+                dueDate,
+                `<button class="btn btn-sm btn-outline-primary" onclick="showDebtDetails('${debtId}')" title="แสดงรายละเอียดหนี้">
+                    <i class="fas fa-eye me-1"></i>แสดง
+                </button>`
             ];
             
             // ตรวจสอบว่าข้อมูลครบถ้วน
-            if (rowData.length === 5) {
+            if (rowData.length === 6) {
                 debtsData.push(rowData);
             } else {
-                console.error('Debts row data has incorrect number of columns:', rowData.length, 'Expected: 5');
+                console.error('Debts row data has incorrect number of columns:', rowData.length, 'Expected: 6');
                 console.error('Row data:', rowData);
             }
             
@@ -432,8 +526,8 @@ function updateDebtsDataTable(data) {
     }
     
     // ตรวจสอบว่าข้อมูลมีคอลัมน์ครบถ้วนหรือไม่
-    if (data.length > 0 && data[0].length !== 5) {
-        console.error('Debts data has incorrect number of columns:', data[0].length, 'Expected: 5');
+    if (data.length > 0 && data[0].length !== 6) {
+        console.error('Debts data has incorrect number of columns:', data[0].length, 'Expected: 6');
         return;
     }
     
@@ -465,6 +559,11 @@ function updateDebtsDataTable(data) {
             {
                 targets: 4, // คอลัมน์วันครบกำหนด
                 className: 'text-end'
+            },
+            {
+                targets: 5, // คอลัมน์รายละเอียด
+                className: 'text-center',
+                orderable: false
             }
         ],
         dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
@@ -754,19 +853,20 @@ function createDebtItem(debtId, debt) {
     const dueDate = debt.dueDate ? new Date(debt.dueDate.toDate()).toLocaleDateString('th-TH') : '-';
     const status = getStatusBadge(debt.status);
     
-    // Get creditor initial for avatar
-    const creditorName = debt.creditorName || 'ไม่ระบุชื่อเจ้าหนี้';
-    const creditorInitial = creditorName.charAt(0).toUpperCase();
+    // Get debtor ID for display
+    const debtorId = debt.debtorId || window.firebaseAuth.currentUser?.uid || 'ไม่ระบุรหัสลูกหนี้';
+    const formattedDebtorId = formatDebtorId(debtorId);
+    const debtorInitial = debtorId.charAt(0).toUpperCase();
     
     debtItem.innerHTML = `
         <div class="row align-items-center">
             <div class="col-md-1">
                 <div class="creditor-avatar">
-                    <span class="creditor-initial">${creditorInitial}</span>
+                    <span class="creditor-initial">${debtorInitial}</span>
                 </div>
             </div>
             <div class="col-md-3">
-                <h6 class="mb-1">${creditorName}</h6>
+                <h6 class="mb-1">${formattedDebtorId}</h6>
                 <small class="text-muted">${debt.description || 'ไม่มีคำอธิบาย'}</small>
             </div>
             <div class="col-md-2">
@@ -777,6 +877,11 @@ function createDebtItem(debtId, debt) {
             </div>
             <div class="col-md-2 text-end">
                 <small class="text-muted">${dueDate}</small>
+            </div>
+            <div class="col-md-2 text-center">
+                <button class="btn btn-sm btn-outline-primary" onclick="showDebtDetails('${debtId}')" title="แสดงรายละเอียดหนี้">
+                    <i class="fas fa-eye me-1"></i>แสดง
+                </button>
             </div>
         </div>
     `;
@@ -1437,18 +1542,9 @@ function showSettingsContent() {
 }
 
 // Notification settings
-function notificationSettings() {
-    // Remove focus from any elements in modals before showing settings
-    const modals = ['addDebtModal', 'debtDetailsModal', 'installmentPaymentModal'];
-    modals.forEach(modalId => {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            removeFocusFromModal(modal);
-        }
-    });
-    
-    showSettingsContent();
-}
+// function notificationSettings() {
+//     // Removed - notifications not used
+// }
 
 // ชำระเงิน
 function makePayment(debtId = null) {
@@ -1884,7 +1980,11 @@ function submitPayment() {
             };
             
             // บันทึกการชำระเงินไปยัง Firestore
-            return window.firebaseDb.collection('payments').add(paymentData);
+            return window.firebaseDb.collection('payments').add(paymentData)
+                .then(function(paymentRef) {
+                    // อัปเดต paymentHistory ใน debt document ด้วย
+                    return updateDebtPaymentHistory(debtId, paymentData, paymentRef.id);
+                });
         })
         .then(function(paymentRef) {
             // อัปเดตยอดคงเหลือของหนี้
@@ -1930,6 +2030,72 @@ function submitPayment() {
         });
 }
 
+// อัปเดต paymentHistory ใน debt document
+function updateDebtPaymentHistory(debtId, paymentData, paymentId) {
+    // สร้าง payment record สำหรับ paymentHistory
+    const paymentRecord = {
+        id: paymentId,
+        amount: paymentData.amount,
+        date: paymentData.paymentDate,
+        note: paymentData.notes || 'ชำระผ่านระบบลูกหนี้',
+        installmentNumber: 1 // จะถูกอัปเดตใน updateDebtAfterPayment
+    };
+    
+    return window.firebaseDb.collection('debts').doc(debtId).update({
+        paymentHistory: firebase.firestore.FieldValue.arrayUnion(paymentRecord)
+    });
+}
+
+// ฟังก์ชันสำหรับอัปเดต paymentHistory สำหรับการชำระเงินที่มีอยู่แล้ว
+function syncExistingPaymentsToDebtHistory() {
+    // Syncing existing payments to debt history
+    
+    // ดึงข้อมูลการชำระเงินทั้งหมด
+    window.firebaseDb.collection('payments').get()
+        .then(function(paymentSnapshot) {
+            const debtUpdates = {};
+            
+            paymentSnapshot.forEach(function(paymentDoc) {
+                const payment = paymentDoc.data();
+                const debtId = payment.debtId;
+                
+                if (!debtId) return;
+                
+                // สร้าง payment record
+                const paymentRecord = {
+                    id: paymentDoc.id,
+                    amount: payment.amount,
+                    date: payment.paymentDate,
+                    note: payment.notes || 'ชำระผ่านระบบลูกหนี้',
+                    installmentNumber: 1
+                };
+                
+                // เก็บข้อมูลสำหรับอัปเดต
+                if (!debtUpdates[debtId]) {
+                    debtUpdates[debtId] = [];
+                }
+                debtUpdates[debtId].push(paymentRecord);
+            });
+            
+            // อัปเดต debt documents
+            const updatePromises = Object.keys(debtUpdates).map(function(debtId) {
+                return window.firebaseDb.collection('debts').doc(debtId).update({
+                    paymentHistory: firebase.firestore.FieldValue.arrayUnion(...debtUpdates[debtId])
+                });
+            });
+            
+            return Promise.all(updatePromises);
+        })
+        .then(function() {
+            // Successfully synced existing payments to debt history
+            showSuccess('อัปเดตประวัติการชำระเงินเรียบร้อยแล้ว');
+        })
+        .catch(function(error) {
+            console.error('Error syncing payments:', error);
+            showError('เกิดข้อผิดพลาดในการอัปเดตประวัติการชำระเงิน');
+        });
+}
+
 // อัปเดตหนี้หลังการชำระเงิน
 function updateDebtAfterPayment(debtId, paymentAmount) {
     return window.firebaseDb.collection('debts').doc(debtId).get()
@@ -1941,15 +2107,20 @@ function updateDebtAfterPayment(debtId, paymentAmount) {
             const debt = doc.data();
             const currentRemaining = debt.remainingAmount || debt.amount || 0;
             const newRemaining = currentRemaining - paymentAmount;
+            const currentPaidInstallments = debt.paidInstallments || 0;
+            const newPaidInstallments = currentPaidInstallments + 1;
             
             const updateData = {
                 remainingAmount: newRemaining,
+                paidInstallments: newPaidInstallments,
+                lastPaymentDate: new Date(),
                 updatedAt: new Date()
             };
             
             // อัปเดตสถานะถ้าชำระครบแล้ว
             if (newRemaining <= 0) {
                 updateData.status = 'paid';
+                updateData.paidAt = new Date();
             } else if (debt.status === 'pending') {
                 updateData.status = 'partial';
             }
@@ -1986,11 +2157,12 @@ function saveSettings() {
 
 // ฟังก์ชันออกจากระบบ
 function logout() {
-    if (isRedirecting) {
+    const isRedirectingFlag = sessionStorage.getItem('isRedirecting');
+    if (isRedirectingFlag === 'true') {
         return; // ป้องกันการพยายามออกจากระบบหลายครั้ง
     }
     
-    isRedirecting = true;
+    sessionStorage.setItem('isRedirecting', 'true');
     
     // ทำความสะอาด DataTables ก่อนออกจากระบบ
     cleanupDataTables();
@@ -2006,11 +2178,11 @@ function logout() {
         
         // เปลี่ยนเส้นทางไปหน้าเข้าสู่ระบบ
         setTimeout(() => {
-            window.location.href = '../../index.html';
+            window.location.href = '/index.html';
         }, 100);
     }).catch(function(error) {
         console.error('Error signing out:', error);
-        isRedirecting = false; // รีเซ็ตแฟล็กเมื่อเกิดข้อผิดพลาด
+        sessionStorage.removeItem('isRedirecting'); // รีเซ็ตแฟล็กเมื่อเกิดข้อผิดพลาด
         showError('เกิดข้อผิดพลาดในการออกจากระบบ');
     });
 }
@@ -2041,11 +2213,9 @@ function debugCheckUserData() {
         .then(function(doc) {
             if (doc.exists) {
                 const userData = doc.data();
-                console.log('User data:', userData);
-                console.log('Phone number:', userData.phoneNumber);
-                console.log('Email:', userData.email);
+                // User data loaded successfully
             } else {
-                console.log('User document not found');
+                // User document not found
             }
         })
         .catch(function(error) {
@@ -2321,10 +2491,12 @@ function updateAllCharts() {
                     
                     // คำนวณยอดที่ชำระแล้ว
                     let paidAmount = 0;
-                    if (debt.paymentHistory && Array.isArray(debt.paymentHistory)) {
+                    if (debt.paymentHistory && Array.isArray(debt.paymentHistory) && debt.paymentHistory.length > 0) {
                         paidAmount = debt.paymentHistory.reduce((sum, payment) => {
                             return sum + (parseFloat(payment.amount) || 0);
                         }, 0);
+                    } else if (debt.totalPaidAmount !== undefined && debt.totalPaidAmount !== null) {
+                        paidAmount = debt.totalPaidAmount;
                     }
                     
                     const remainingAmount = debtAmount - paidAmount;
@@ -2379,52 +2551,40 @@ function updateAllCharts() {
 function debugDashboardData() {
     const userId = window.firebaseAuth.currentUser?.uid;
     if (!userId) {
-        console.log('No user ID found');
+        // No user ID found
         return;
     }
     
-    console.log('=== DEBUG DASHBOARD DATA ===');
-    console.log('User ID:', userId);
+    // Debug dashboard data
     
     // ตรวจสอบข้อมูลผู้ใช้
     window.firebaseDb.collection('users').doc(userId).get()
         .then(function(userDoc) {
             if (!userDoc.exists) {
-                console.log('User document not found');
+                // User document not found
                 return;
             }
             
             const userData = userDoc.data();
             const userPhone = userData.phone || userData.phoneNumber;
             
-            console.log('User data:', {
-                phone: userPhone,
-                email: userData.email,
-                displayName: userData.displayName
-            });
+            // User data loaded successfully
             
             // ตรวจสอบข้อมูลหนี้
             let debtsRef;
             if (userPhone) {
                 debtsRef = window.firebaseDb.collection('debts').where('debtorPhone', '==', userPhone);
-                console.log('Searching debts by phone:', userPhone);
+                // Debug log removed
             } else {
                 debtsRef = window.firebaseDb.collection('debts').where('debtorEmail', '==', userData.email);
-                console.log('Searching debts by email:', userData.email);
+                // Debug log removed
             }
             
             debtsRef.get().then(function(querySnapshot) {
                 
                 querySnapshot.forEach(function(doc) {
                     const debt = doc.data();
-                    console.log('Debt:', {
-                        id: doc.id,
-                        amount: debt.amount,
-                        status: debt.status,
-                        debtorPhone: debt.debtorPhone,
-                        debtorEmail: debt.debtorEmail,
-                        paymentHistory: debt.paymentHistory?.length || 0
-                    });
+                    // Debt data loaded
                 });
             });
         });
@@ -2482,7 +2642,15 @@ function populatePaymentHistoryModal(debtData) {
     const paymentHistory = debtData.paymentHistory || [];
     const paidInstallments = paymentHistory.length;
     const remainingInstallments = totalInstallments - paidInstallments;
-    const paidAmount = paymentHistory.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+    
+    // คำนวณยอดที่ชำระแล้ว
+    let paidAmount = 0;
+    if (paymentHistory.length > 0) {
+        paidAmount = paymentHistory.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+    } else if (debtData.totalPaidAmount !== undefined && debtData.totalPaidAmount !== null) {
+        paidAmount = debtData.totalPaidAmount;
+    }
+    
     const remainingAmount = totalAmount - paidAmount;
 
     // อัปเดตข้อมูลใน modal
@@ -2687,7 +2855,15 @@ function markFullyPaid() {
 
     const totalAmount = currentDebtData.totalAmount || currentDebtData.amount || 0;
     const paymentHistory = currentDebtData.paymentHistory || [];
-    const paidAmount = paymentHistory.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+    
+    // คำนวณยอดที่ชำระแล้ว
+    let paidAmount = 0;
+    if (paymentHistory.length > 0) {
+        paidAmount = paymentHistory.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+    } else if (currentDebtData.totalPaidAmount !== undefined && currentDebtData.totalPaidAmount !== null) {
+        paidAmount = currentDebtData.totalPaidAmount;
+    }
+    
     const remainingAmount = totalAmount - paidAmount;
 
     if (remainingAmount <= 0) {
@@ -2711,7 +2887,7 @@ function markFullyPaid() {
 function setupPaymentHistoryModalListeners() {
     // สำหรับหน้า debtor dashboard ไม่ต้องตั้งค่า event listeners สำหรับปุ่มบันทึกการชำระ
     // เนื่องจากเป็น read-only mode
-    console.log('Payment history modal set to read-only mode for debtors');
+    // Debug log removed
     
     // เพิ่ม event listener สำหรับการปิดโมดัล
     const modal = document.getElementById('installmentPaymentModal');
@@ -2786,4 +2962,283 @@ document.addEventListener('DOMContentLoaded', function() {
         cleanupDataTables();
     });
 });
+
+// ฟังก์ชันแสดงรายละเอียดหนี้
+function showDebtDetails(debtId) {
+    if (!debtId) {
+        console.error('Debt ID is required');
+        return;
+    }
+    
+    // ดึงข้อมูลหนี้จาก Firestore
+    window.firebaseDb.collection('debts').doc(debtId).get()
+        .then(function(doc) {
+            if (!doc.exists) {
+                console.error('Debt not found');
+                if (typeof showToast === 'function') {
+                    showToast('ไม่พบข้อมูลหนี้', 'error');
+                }
+                return;
+            }
+            
+            const debt = doc.data();
+            
+            // Debug: Log the actual debt data to see what fields are available
+            // Debug log removed
+            // Debug log removed
+            // Debug log removed
+            // Debug log removed
+            // Debug log removed
+            // Debug log removed
+            // Debug log removed
+            // Debug log removed
+            // Debug log removed
+            // Debug log removed
+            // Debug log removed
+            // Debug log removed
+            // Debug log removed
+            
+            // เติมข้อมูลใน modal
+            document.getElementById('modalCreditorName').textContent = debt.creditorName || 'ไม่ระบุชื่อเจ้าหนี้';
+            document.getElementById('modalDescription').textContent = debt.description || 'ไม่มีคำอธิบาย';
+            
+            // สถานะ
+            const statusElement = document.getElementById('modalStatus');
+            statusElement.innerHTML = getStatusBadge(debt.status);
+            
+            // วันที่สร้าง
+            const createdDate = debt.createdAt ? new Date(debt.createdAt.toDate()).toLocaleDateString('th-TH') : '-';
+            document.getElementById('modalCreatedDate').textContent = createdDate;
+            
+            // วันครบกำหนด
+            const dueDate = debt.dueDate ? new Date(debt.dueDate.toDate()).toLocaleDateString('th-TH') : '-';
+            document.getElementById('modalDueDate').textContent = dueDate;
+            
+            // ข้อมูลทางการเงิน
+            const principal = debt.principal || 0;
+            const interestRate = debt.interestRate !== undefined && debt.interestRate !== null ? debt.interestRate : 0;
+            
+            // คำนวณดอกเบี้ยจากเงินต้นและอัตราดอกเบี้ย
+            let interest = debt.totalInterest || 0;
+            if (interest === 0 && principal > 0 && interestRate > 0) {
+                // คำนวณดอกเบี้ยจากเงินต้น × อัตราดอกเบี้ย
+                interest = (principal * interestRate) / 100;
+                // Debug log removed
+            }
+            // Debug log removed
+            
+            const totalAmount = debt.totalAmount || debt.amount || 0;
+            const remainingAmount = debt.remainingAmount || 0;
+            
+            // คำนวณยอดรวมและยอดคงเหลือ
+            let finalTotalAmount = totalAmount;
+            let finalRemainingAmount = remainingAmount;
+            
+            // คำนวณยอดที่ชำระแล้ว
+            let paidAmount = 0;
+            if (debt.paymentHistory && Array.isArray(debt.paymentHistory) && debt.paymentHistory.length > 0) {
+                paidAmount = debt.paymentHistory.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+                // Debug log removed
+                // Debug log removed
+            } else if (debt.totalPaidAmount !== undefined && debt.totalPaidAmount !== null) {
+                // ใช้ totalPaidAmount เป็น fallback ถ้าไม่มี paymentHistory
+                paidAmount = debt.totalPaidAmount;
+                // Debug log removed
+            } else if (finalTotalAmount > 0 && finalRemainingAmount < finalTotalAmount) {
+                // คำนวณจาก totalAmount - remainingAmount เป็น fallback สุดท้าย
+                paidAmount = finalTotalAmount - finalRemainingAmount;
+                // Debug log removed
+            } else if (debt.paidInstallments > 0 && debt.monthlyPayment > 0) {
+                // คำนวณจาก paidInstallments × monthlyPayment
+                paidAmount = debt.paidInstallments * debt.monthlyPayment;
+                // Debug log removed
+            } else {
+                // Debug log removed
+            }
+            
+            // ถ้าไม่มียอดรวมจากฐานข้อมูล ให้คำนวณจากเงินต้น + ดอกเบี้ย
+            if (finalTotalAmount === 0 && principal > 0) {
+                finalTotalAmount = principal + interest;
+                // Debug log removed
+            }
+            
+            // ถ้าไม่มียอดคงเหลือ ให้คำนวณจากยอดรวม - ยอดที่ชำระแล้ว
+            if (finalRemainingAmount === 0 && finalTotalAmount > 0) {
+                finalRemainingAmount = finalTotalAmount - paidAmount;
+                // Debug log removed
+            }
+            
+            // Debug log removed
+            
+            // ตรวจสอบว่า modal ถูกเปิดหรือไม่
+            const debtModal = document.getElementById('debtDetailsModal');
+            if (debtModal) {
+                // Debug log removed
+                // Debug log removed
+                // Debug log removed
+                // Debug log removed
+                
+                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
+                const modalBackdrop = document.querySelector('.modal-backdrop');
+                if (modalBackdrop) {
+                    // Debug log removed
+                } else {
+                    // Debug log removed
+                }
+                
+                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
+                const modalDialog = debtModal.querySelector('.modal-dialog');
+                if (modalDialog) {
+                    // Debug log removed
+                    // Debug log removed
+                } else {
+                    // Debug log removed
+                }
+                
+                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
+                const modalContent = debtModal.querySelector('.modal-content');
+                if (modalContent) {
+                    // Debug log removed
+                    // Debug log removed
+                } else {
+                    // Debug log removed
+                }
+                
+                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
+                const modalBody = debtModal.querySelector('.modal-body');
+                if (modalBody) {
+                    // Debug log removed
+                    // Debug log removed
+                } else {
+                    // Debug log removed
+                }
+                
+                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
+                const modalFooter = debtModal.querySelector('.modal-footer');
+                if (modalFooter) {
+                    // Debug log removed
+                    // Debug log removed
+                } else {
+                    // Debug log removed
+                }
+                
+                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
+                const modalHeader = debtModal.querySelector('.modal-header');
+                if (modalHeader) {
+                    // Debug log removed
+                    // Debug log removed
+                } else {
+                    // Debug log removed
+                }
+                
+                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
+                const modalTitle = debtModal.querySelector('.modal-title');
+                if (modalTitle) {
+                    // Debug log removed
+                    // Debug log removed
+                } else {
+                    // Debug log removed
+                }
+                
+                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
+                const modalClose = debtModal.querySelector('.btn-close');
+                if (modalClose) {
+                    // Debug log removed
+                    // Debug log removed
+                } else {
+                    // Debug log removed
+                }
+            } else {
+                console.error('Debt Details Modal not found!');
+            }
+            
+            document.getElementById('modalPrincipal').textContent = `฿${principal.toLocaleString()}`;
+            // แสดงอัตราดอกเบี้ย
+            const interestRateText = (interestRate > 0) ? `${interestRate}%` : 
+                                   (debt.interestType && debt.interestType !== 'none') ? 'ไม่ระบุอัตรา' : 'ไม่มีดอกเบี้ย';
+            document.getElementById('modalInterestRate').textContent = interestRateText;
+            
+            // แสดงดอกเบี้ยพร้อมจำนวนงวด
+            const installments = debt.installmentMonths || 0;
+            const interestText = installments > 0 ? `฿${interest.toLocaleString()} (${installments} งวด)` : `฿${interest.toLocaleString()}`;
+            document.getElementById('modalInterest').textContent = interestText;
+            
+            // อัปเดต DOM elements พร้อม debug
+            const totalAmountElement = document.getElementById('modalTotalAmount');
+            const paidAmountElement = document.getElementById('modalPaidAmount');
+            const remainingAmountElement = document.getElementById('modalRemainingAmount');
+            
+            // Debug log removed
+            // Debug log removed
+            // Debug log removed
+            // Debug log removed
+            
+            if (totalAmountElement) {
+                totalAmountElement.textContent = `฿${finalTotalAmount.toLocaleString()}`;
+                // Debug log removed
+            } else {
+                console.error('modalTotalAmount element not found!');
+            }
+            
+            if (paidAmountElement) {
+                paidAmountElement.textContent = `฿${paidAmount.toLocaleString()}`;
+                // Debug log removed
+                // Debug log removed
+                // Debug log removed
+                
+                // ตรวจสอบว่า element ถูกอัปเดตจริงหรือไม่
+                setTimeout(() => {
+                    // Debug log removed
+                }, 100);
+            } else {
+                console.error('modalPaidAmount element not found!');
+            }
+            
+            if (remainingAmountElement) {
+                remainingAmountElement.textContent = `฿${finalRemainingAmount.toLocaleString()}`;
+                // Debug log removed
+            } else {
+                console.error('modalRemainingAmount element not found!');
+            }
+            
+            // ข้อมูลเพิ่มเติม
+            const monthlyPayment = debt.monthlyPayment || 0;
+            const notes = debt.notes || debt.description || '-';
+            
+            // แปลงประเภทดอกเบี้ยเป็นภาษาไทย
+            const interestType = debt.interestType || 'ไม่ระบุ';
+            let paymentTypeText = '';
+            switch(interestType) {
+                case 'simple':
+                    paymentTypeText = 'ดอกเบี้ยคงที่';
+                    break;
+                case 'compound':
+                    paymentTypeText = 'ดอกเบี้ยลดต้นลดดอก';
+                    break;
+                case 'none':
+                    paymentTypeText = 'ไม่คิดดอกเบี้ย';
+                    break;
+                default:
+                    paymentTypeText = interestType || 'ไม่ระบุ';
+            }
+            
+            // Debug: Log additional information values
+            // Additional info processed
+            
+            document.getElementById('modalPaymentType').textContent = paymentTypeText;
+            document.getElementById('modalInstallments').textContent = installments > 0 ? `${installments} งวด` : '-';
+            document.getElementById('modalMonthlyPayment').textContent = monthlyPayment > 0 ? `฿${monthlyPayment.toLocaleString()}` : '-';
+            document.getElementById('modalNotes').textContent = notes;
+            
+            // แสดง modal
+            const modal = new bootstrap.Modal(document.getElementById('debtDetailsModal'));
+            modal.show();
+        })
+        .catch(function(error) {
+            console.error('Error loading debt details:', error);
+            if (typeof showToast === 'function') {
+                showToast('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
+            }
+        });
+}
 
