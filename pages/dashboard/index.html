@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="แดชบอร์ดระบบจัดการหนี้ - เลือกแดชบอร์ดที่เหมาะสม">
+    
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdn.datatables.net https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;
+        style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;
+        font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+        img-src 'self' data: blob: https:;
+        connect-src 'self' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdn.datatables.net https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        frame-src 'none';
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+    ">
+    <title>ระบบจัดการหนี้ - แดชบอร์ด</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="../../manifest.json">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts - Noto Sans Thai -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../css/style.css?v=4.0.0">
+    <link rel="stylesheet" href="../../css/login.css?v=4.0.0">
+    
+    <style>
+        .dashboard-router-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Noto Sans Thai', sans-serif;
+        }
+        
+        .router-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 3rem;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .router-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            color: #667eea;
+        }
+        
+        .router-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+        
+        .router-subtitle {
+            color: #718096;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            border: 0.25rem solid #f3f3f3;
+            border-top: 0.25rem solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            color: #e53e3e;
+            background: #fed7d7;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+        
+        .retry-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            margin-top: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .retry-button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .router-card {
+                padding: 2rem;
+                margin: 1rem;
+            }
+            
+            .router-title {
+                font-size: 1.5rem;
+            }
+            
+            .router-icon {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-router-container">
+        <div class="router-card">
+            <div class="router-icon">
+                <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <h1 class="router-title">กำลังโหลดแดชบอร์ด</h1>
+            <p class="router-subtitle">กรุณารอสักครู่ กำลังตรวจสอบข้อมูลผู้ใช้...</p>
+            
+            <div id="loading-container">
+                <div class="loading-spinner"></div>
+                <span>กำลังตรวจสอบสิทธิ์การเข้าถึง...</span>
+            </div>
+            
+            <div id="error-container" style="display: none;">
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="error-text">เกิดข้อผิดพลาดในการโหลดแดชบอร์ด</span>
+                </div>
+                <button class="retry-button" onclick="retryRedirect()">
+                    <i class="fas fa-redo"></i> ลองใหม่
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script src="../../js/firebase-config.js?v=4.0.0"></script>
+    <script src="../../js/firebase-utils.js?v=4.0.0"></script>
+    <script src="../../js/auth.js?v=4.0.0"></script>
+    
+    <script>
+        // Dashboard Router Script
+        let redirectAttempts = 0;
+        const maxRedirectAttempts = 3;
+        
+        async function redirectToDashboard() {
+            try {
+                redirectAttempts++;
+                
+                // Check if user is authenticated
+                if (!window.authModule || !window.authModule.isAuthenticated()) {
+                    throw new Error('ผู้ใช้ยังไม่ได้เข้าสู่ระบบ');
+                }
+                
+                // Get current user
+                const user = window.authModule.getCurrentUser();
+                if (!user) {
+                    throw new Error('ไม่พบข้อมูลผู้ใช้');
+                }
+                
+                // Get user type from localStorage or Firebase
+                let userType = localStorage.getItem('userType');
+                
+                if (!userType) {
+                    // Try to get user type from Firebase
+                    if (window.firebaseUtils && window.firebaseUtils.isFirebaseReady()) {
+                        const { db } = window.firebaseUtils.getFirebaseInstances();
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            userType = userData.userType;
+                            localStorage.setItem('userType', userType);
+                        }
+                    }
+                }
+                
+                if (!userType) {
+                    throw new Error('ไม่พบประเภทผู้ใช้ กรุณาติดต่อผู้ดูแลระบบ');
+                }
+                
+                // Redirect based on user type
+                let redirectUrl = '';
+                switch (userType) {
+                    case 'creditor':
+                        redirectUrl = './creditor-dashboard.html';
+                        break;
+                    case 'debtor':
+                        redirectUrl = './debtor-dashboard.html';
+                        break;
+                    default:
+                        throw new Error('ประเภทผู้ใช้ไม่ถูกต้อง');
+                }
+                
+                // Show redirect message
+                document.querySelector('.router-subtitle').textContent = 
+                    `กำลังนำคุณไปยังแดชบอร์ด${userType === 'creditor' ? 'เจ้าหนี้' : 'ลูกหนี้'}...`;
+                
+                // Redirect after a short delay
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Dashboard redirect error:', error);
+                showError(error.message);
+            }
+        }
+        
+        function showError(message) {
+            document.getElementById('loading-container').style.display = 'none';
+            document.getElementById('error-container').style.display = 'block';
+            document.getElementById('error-text').textContent = message;
+        }
+        
+        function retryRedirect() {
+            if (redirectAttempts < maxRedirectAttempts) {
+                document.getElementById('loading-container').style.display = 'block';
+                document.getElementById('error-container').style.display = 'none';
+                document.querySelector('.router-subtitle').textContent = 
+                    'กรุณารอสักครู่ กำลังตรวจสอบข้อมูลผู้ใช้...';
+                
+                setTimeout(redirectToDashboard, 1000);
+            } else {
+                // Redirect to login page after max attempts
+                window.location.href = '../auth/register.html';
+            }
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for Firebase to be ready
+            if (window.firebaseUtils && window.firebaseUtils.isFirebaseReady()) {
+                redirectToDashboard();
+            } else {
+                // Wait for Firebase to initialize
+                const checkFirebase = setInterval(() => {
+                    if (window.firebaseUtils && window.firebaseUtils.isFirebaseReady()) {
+                        clearInterval(checkFirebase);
+                        redirectToDashboard();
+                    }
+                }, 500);
+                
+                // Timeout after 10 seconds
+                setTimeout(() => {
+                    clearInterval(checkFirebase);
+                    showError('ไม่สามารถเชื่อมต่อกับระบบได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+                }, 10000);
+            }
+        });
+        
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && redirectAttempts === 0) {
+                // Page became visible again, retry if needed
+                setTimeout(redirectToDashboard, 1000);
+            }
+        });
+    </script>
+</body>
+</html>
