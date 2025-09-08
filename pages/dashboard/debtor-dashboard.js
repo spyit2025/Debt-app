@@ -3286,17 +3286,24 @@ function showDebtDetails(debtId) {
 // Payment Progress Functions
 function updatePaymentProgress() {
     try {
+        console.log('=== updatePaymentProgress called ===');
         const debts = window.debtorDebts || [];
+        console.log('Debts found:', debts);
+        console.log('Debts length:', debts.length);
         
         let totalPaidAmount = 0;
         let totalDebtAmount = 0;
         const individualDebts = [];
 
         if (debts && debts.length > 0) {
-            debts.forEach(debt => {
+            console.log('Processing debts...');
+            debts.forEach((debt, index) => {
+                console.log(`Debt ${index}:`, debt);
                 const principal = parseFloat(debt.principal) || 0;
                 const interest = parseFloat(debt.interest) || 0;
                 const paidAmount = parseFloat(debt.paidAmount) || 0;
+                
+                console.log(`Debt ${index} - Principal: ${principal}, Interest: ${interest}, Paid: ${paidAmount}`);
                 
                 const totalAmount = principal + interest;
                 const remainingAmount = totalAmount - paidAmount;
@@ -3315,10 +3322,15 @@ function updatePaymentProgress() {
                     progressPercent: totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
                 });
             });
+        } else {
+            console.log('No debts found or debts array is empty');
         }
+
+        console.log('Total calculations:', { totalPaidAmount, totalDebtAmount });
 
         // Update overall progress
         const overallProgressPercent = totalDebtAmount > 0 ? (totalPaidAmount / totalDebtAmount) * 100 : 0;
+        console.log('Overall progress percent:', overallProgressPercent);
         
         // Update DOM elements
         const paidAmountElement = document.getElementById('paidAmount');
@@ -3326,16 +3338,26 @@ function updatePaymentProgress() {
         const overallProgressPercentElement = document.getElementById('overallProgressPercent');
         const overallProgressBarElement = document.getElementById('overallProgressBar');
 
+        console.log('DOM elements found:', {
+            paidAmountElement: !!paidAmountElement,
+            totalAmountElement: !!totalAmountElement,
+            overallProgressPercentElement: !!overallProgressPercentElement,
+            overallProgressBarElement: !!overallProgressBarElement
+        });
+
         if (paidAmountElement) {
             paidAmountElement.textContent = totalPaidAmount.toLocaleString();
+            console.log('Updated paid amount:', totalPaidAmount.toLocaleString());
         }
         
         if (totalAmountElement) {
             totalAmountElement.textContent = totalDebtAmount.toLocaleString();
+            console.log('Updated total amount:', totalDebtAmount.toLocaleString());
         }
         
         if (overallProgressPercentElement) {
             overallProgressPercentElement.textContent = `${Math.round(overallProgressPercent)}%`;
+            console.log('Updated progress percent:', `${Math.round(overallProgressPercent)}%`);
         }
         
         if (overallProgressBarElement) {
@@ -3353,6 +3375,7 @@ function updatePaymentProgress() {
             } else {
                 overallProgressBarElement.classList.add('bg-gradient-danger');
             }
+            console.log('Updated progress bar width:', `${overallProgressPercent}%`);
         }
 
         // Update individual debt progress
@@ -3422,19 +3445,43 @@ function updateIndividualDebtProgress(debts) {
 
 // Call updatePaymentProgress when debts are loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Update progress when page loads
+    console.log('DOM Content Loaded - Setting up progress updates');
+    // Update progress when page loads - try multiple times to ensure data is loaded
     setTimeout(updatePaymentProgress, 1000);
+    setTimeout(updatePaymentProgress, 3000);
+    setTimeout(updatePaymentProgress, 5000);
 });
 
 // Update progress when debts change
 if (typeof window !== 'undefined') {
+    // Override the original updateDebts function to also update progress
     const originalUpdateDebts = window.updateDebts;
     if (originalUpdateDebts) {
         window.updateDebts = function(...args) {
+            console.log('updateDebts called - updating progress');
             const result = originalUpdateDebts.apply(this, args);
             setTimeout(updatePaymentProgress, 100);
+            setTimeout(updatePaymentProgress, 1000);
+            return result;
+        };
+    }
+    
+    // Also try to hook into any debt loading functions
+    const originalLoadDebts = window.loadDebts;
+    if (originalLoadDebts) {
+        window.loadDebts = function(...args) {
+            console.log('loadDebts called - will update progress after loading');
+            const result = originalLoadDebts.apply(this, args);
+            setTimeout(updatePaymentProgress, 500);
+            setTimeout(updatePaymentProgress, 2000);
             return result;
         };
     }
 }
+
+// Manual trigger function for testing
+window.manualUpdateProgress = function() {
+    console.log('Manual progress update triggered');
+    updatePaymentProgress();
+};
 
