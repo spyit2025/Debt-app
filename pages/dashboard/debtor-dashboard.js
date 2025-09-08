@@ -3283,3 +3283,154 @@ function showDebtDetails(debtId) {
         });
 }
 
+// Payment Progress Functions
+function updatePaymentProgress() {
+    try {
+        const debts = window.debtorDebts || [];
+        
+        if (!debts || debts.length === 0) {
+            // Hide progress section if no debts
+            const progressSection = document.querySelector('.payment-progress-container');
+            if (progressSection) {
+                progressSection.style.display = 'none';
+            }
+            return;
+        }
+
+        let totalPaidAmount = 0;
+        let totalDebtAmount = 0;
+        const individualDebts = [];
+
+        debts.forEach(debt => {
+            const principal = parseFloat(debt.principal) || 0;
+            const interest = parseFloat(debt.interest) || 0;
+            const paidAmount = parseFloat(debt.paidAmount) || 0;
+            
+            const totalAmount = principal + interest;
+            const remainingAmount = totalAmount - paidAmount;
+            
+            totalPaidAmount += paidAmount;
+            totalDebtAmount += totalAmount;
+            
+            individualDebts.push({
+                id: debt.id,
+                title: debt.title || debt.description || 'หนี้ไม่ระบุชื่อ',
+                principal: principal,
+                interest: interest,
+                totalAmount: totalAmount,
+                paidAmount: paidAmount,
+                remainingAmount: remainingAmount,
+                progressPercent: totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
+            });
+        });
+
+        // Update overall progress
+        const overallProgressPercent = totalDebtAmount > 0 ? (totalPaidAmount / totalDebtAmount) * 100 : 0;
+        
+        // Update DOM elements
+        const paidAmountElement = document.getElementById('paidAmount');
+        const totalAmountElement = document.getElementById('totalAmount');
+        const overallProgressPercentElement = document.getElementById('overallProgressPercent');
+        const overallProgressBarElement = document.getElementById('overallProgressBar');
+
+        if (paidAmountElement) {
+            paidAmountElement.textContent = totalPaidAmount.toLocaleString();
+        }
+        
+        if (totalAmountElement) {
+            totalAmountElement.textContent = totalDebtAmount.toLocaleString();
+        }
+        
+        if (overallProgressPercentElement) {
+            overallProgressPercentElement.textContent = `${Math.round(overallProgressPercent)}%`;
+        }
+        
+        if (overallProgressBarElement) {
+            overallProgressBarElement.style.width = `${overallProgressPercent}%`;
+            overallProgressBarElement.setAttribute('aria-valuenow', overallProgressPercent);
+            
+            // Update progress bar color based on completion
+            overallProgressBarElement.className = 'progress-bar progress-bar-striped progress-bar-animated';
+            if (overallProgressPercent >= 100) {
+                overallProgressBarElement.classList.add('bg-gradient-success');
+            } else if (overallProgressPercent >= 75) {
+                overallProgressBarElement.classList.add('bg-gradient-primary');
+            } else if (overallProgressPercent >= 50) {
+                overallProgressBarElement.classList.add('bg-gradient-warning');
+            } else {
+                overallProgressBarElement.classList.add('bg-gradient-danger');
+            }
+        }
+
+        // Update individual debt progress
+        updateIndividualDebtProgress(individualDebts);
+        
+    } catch (error) {
+        console.error('Error updating payment progress:', error);
+    }
+}
+
+function updateIndividualDebtProgress(debts) {
+    const container = document.getElementById('debtProgressItems');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    debts.forEach(debt => {
+        const progressItem = document.createElement('div');
+        progressItem.className = 'debt-progress-item';
+        
+        const progressColor = debt.progressPercent >= 100 ? 'bg-gradient-success' : 
+                            debt.progressPercent >= 75 ? 'bg-gradient-primary' :
+                            debt.progressPercent >= 50 ? 'bg-gradient-warning' : 'bg-gradient-danger';
+        
+        progressItem.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="debt-title">${debt.title}</div>
+                <span class="badge ${progressColor.replace('bg-gradient-', 'bg-')} fs-6">
+                    ${Math.round(debt.progressPercent)}%
+                </span>
+            </div>
+            <div class="progress mb-2" style="height: 8px;">
+                <div class="progress-bar ${progressColor}" 
+                     role="progressbar" 
+                     style="width: ${debt.progressPercent}%" 
+                     aria-valuenow="${debt.progressPercent}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center debt-amounts">
+                <span>
+                    <i class="fas fa-check-circle me-1 text-success"></i>
+                    ชำระแล้ว: <strong>${debt.paidAmount.toLocaleString()}</strong> บาท
+                </span>
+                <span>
+                    <i class="fas fa-target me-1 text-info"></i>
+                    ยอดรวม: <strong>${debt.totalAmount.toLocaleString()}</strong> บาท
+                </span>
+            </div>
+        `;
+        
+        container.appendChild(progressItem);
+    });
+}
+
+// Call updatePaymentProgress when debts are loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Update progress when page loads
+    setTimeout(updatePaymentProgress, 1000);
+});
+
+// Update progress when debts change
+if (typeof window !== 'undefined') {
+    const originalUpdateDebts = window.updateDebts;
+    if (originalUpdateDebts) {
+        window.updateDebts = function(...args) {
+            const result = originalUpdateDebts.apply(this, args);
+            setTimeout(updatePaymentProgress, 100);
+            return result;
+        };
+    }
+}
+
