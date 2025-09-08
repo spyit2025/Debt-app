@@ -182,7 +182,7 @@ function checkAuth() {
                     if (currentRedirecting !== 'true') {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
-                            window.location.href = './index.html';
+                            window.location.href = '../../index.html';
                         }, 100);
                     }
                 }
@@ -230,7 +230,7 @@ function checkUserType(userId) {
                     } else if (currentRedirecting !== 'true') {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
-                            window.location.href = './index.html';
+                            window.location.href = '../../index.html';
                         }, 100);
                     }
                 }
@@ -242,7 +242,7 @@ function checkUserType(userId) {
                 if (currentRedirecting !== 'true') {
                     sessionStorage.setItem('isRedirecting', 'true');
                     setTimeout(() => {
-                        window.location.href = './index.html';
+                        window.location.href = '../../index.html';
                     }, 100);
                 }
             }
@@ -255,7 +255,7 @@ function checkUserType(userId) {
             if (currentRedirecting !== 'true') {
                 sessionStorage.setItem('isRedirecting', 'true');
                 setTimeout(() => {
-                    window.location.href = './index.html';
+                    window.location.href = '../../index.html';
                 }, 100);
             }
         });
