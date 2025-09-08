@@ -5,7 +5,7 @@
   "main": "index.html",
   "scripts": {
     "start": "http-server -p 3000 -o",
-    "dev": "http-server -p 3000 -o",
+    "dev": "http-server -p 3001 -o",
     "test": "echo \"No tests specified\" && exit 0",
     "build": "echo \"Building for production...\"",
     "deploy": "echo \"Deploy to GitHub Pages\"",

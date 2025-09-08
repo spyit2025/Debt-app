@@ -320,14 +320,22 @@ function loadDashboardData() {
         let remainingInstallments = 0;
         let totalMonthlyPayment = 0;
         let debtCount = 0;
+        const globalDebtsData = []; // Store raw debt data for progress calculation
         
         querySnapshot.forEach(function(doc) {
             const debt = doc.data();
+            const debtId = doc.id;
             const debtAmount = debt.totalAmount || debt.amount || 0;
             const principal = debt.principal || 0;
             const interest = debt.totalInterest || 0;
             const installments = debt.installmentMonths || 0;
             const monthlyPayment = debt.monthlyPayment || 0;
+            
+            // Store raw debt data for progress calculation
+            globalDebtsData.push({
+                id: debtId,
+                ...debt
+            });
             
             totalDebt += debtAmount;
             totalPrincipal += principal;
@@ -384,6 +392,13 @@ function loadDashboardData() {
          
          // อัปเดตกราฟ
          updateAllCharts();
+         
+        // Store debts data globally for progress calculation
+        window.debtorDebts = globalDebtsData;
+        
+        // Update payment progress with the loaded data
+        updatePaymentProgressWithDebts(globalDebtsData);
+         
          }).catch(function(error) {
              if (window.logger) {
                  window.logger.error('Error loading dashboard data:', error);
@@ -528,12 +543,9 @@ function loadAllUserDebts() {
         
         // Store debts data globally for progress calculation
         window.debtorDebts = globalDebtsData;
-        console.log('Stored debts globally:', window.debtorDebts);
         
-        // Update progress bar after data is loaded
-        if (typeof updatePaymentProgress === 'function') {
-            setTimeout(updatePaymentProgress, 100);
-        }
+        // Update payment progress with the loaded data
+        updatePaymentProgressWithDebts(globalDebtsData);
         
         }).catch(function(error) {
             console.error('Error loading all debts:', error);
@@ -3028,479 +3040,365 @@ function showDebtDetails(debtId) {
         return;
     }
     
-    // ดึงข้อมูลหนี้จาก Firestore
-    window.firebaseDb.collection('debts').doc(debtId).get()
-        .then(function(doc) {
-            if (!doc.exists) {
-                console.error('Debt not found');
-                if (typeof showToast === 'function') {
-                    showToast('ไม่พบข้อมูลหนี้', 'error');
+    try {
+        // สร้างหรือหา modal
+        let modal = document.getElementById('debtDetailsModal');
+        if (!modal) {
+            modal = createDebtDetailsModal();
+            document.body.appendChild(modal);
+        }
+        
+        // แสดง modal พร้อม loading state
+        const bootstrapModal = new bootstrap.Modal(modal);
+        bootstrapModal.show();
+        
+        // แสดงสถานะกำลังโหลด
+        const modalBody = modal.querySelector('.modal-body');
+        if (modalBody) {
+            modalBody.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">กำลังโหลด...</span>
+                    </div>
+                    <p class="mt-2">กำลังโหลดข้อมูลหนี้...</p>
+                </div>
+            `;
+        }
+        
+        // ดึงข้อมูลหนี้จาก Firestore
+        window.firebaseDb.collection('debts').doc(debtId).get()
+            .then(function(doc) {
+                try {
+                    if (!doc.exists) {
+                        console.error('Debt not found');
+                        if (typeof showToast === 'function') {
+                            showToast('ไม่พบข้อมูลหนี้', 'error');
+                        }
+                        bootstrapModal.hide();
+                        return;
+                    }
+                    
+                    const debt = doc.data();
+                    
+                    // Populate modal content first
+                    populateDebtDetailsModalContent(debt, modalBody);
+                    
+                } catch (innerError) {
+                    console.error('Error in showDebtDetails inner function:', innerError);
+                    if (typeof showToast === 'function') {
+                        showToast('เกิดข้อผิดพลาดในการแสดงข้อมูล', 'error');
+                    }
+                    bootstrapModal.hide();
                 }
-                return;
-            }
-            
-            const debt = doc.data();
-            
-            // Debug: Log the actual debt data to see what fields are available
-            // Debug log removed
-            // Debug log removed
-            // Debug log removed
-            // Debug log removed
-            // Debug log removed
-            // Debug log removed
-            // Debug log removed
-            // Debug log removed
-            // Debug log removed
-            // Debug log removed
-            // Debug log removed
-            // Debug log removed
-            // Debug log removed
-            
-            // เติมข้อมูลใน modal
-            document.getElementById('modalCreditorName').textContent = debt.creditorName || 'ไม่ระบุชื่อเจ้าหนี้';
-            document.getElementById('modalDescription').textContent = debt.description || 'ไม่มีคำอธิบาย';
-            
-            // สถานะ
-            const statusElement = document.getElementById('modalStatus');
-            statusElement.innerHTML = getStatusBadge(debt.status);
-            
-            // วันที่สร้าง
-            const createdDate = debt.createdAt ? new Date(debt.createdAt.toDate()).toLocaleDateString('th-TH') : '-';
-            document.getElementById('modalCreatedDate').textContent = createdDate;
-            
-            // วันครบกำหนด
-            const dueDate = debt.dueDate ? new Date(debt.dueDate.toDate()).toLocaleDateString('th-TH') : '-';
-            document.getElementById('modalDueDate').textContent = dueDate;
-            
-            // ข้อมูลทางการเงิน
-            const principal = debt.principal || 0;
-            const interestRate = debt.interestRate !== undefined && debt.interestRate !== null ? debt.interestRate : 0;
-            
-            // คำนวณดอกเบี้ยจากเงินต้นและอัตราดอกเบี้ย
-            let interest = debt.totalInterest || 0;
-            if (interest === 0 && principal > 0 && interestRate > 0) {
-                // คำนวณดอกเบี้ยจากเงินต้น × อัตราดอกเบี้ย
-                interest = (principal * interestRate) / 100;
-                // Debug log removed
-            }
-            // Debug log removed
-            
-            const totalAmount = debt.totalAmount || debt.amount || 0;
-            const remainingAmount = debt.remainingAmount || 0;
-            
-            // คำนวณยอดรวมและยอดคงเหลือ
-            let finalTotalAmount = totalAmount;
-            let finalRemainingAmount = remainingAmount;
-            
-            // คำนวณยอดที่ชำระแล้ว
-            let paidAmount = 0;
-            if (debt.paymentHistory && Array.isArray(debt.paymentHistory) && debt.paymentHistory.length > 0) {
-                paidAmount = debt.paymentHistory.reduce((sum, payment) => sum + (payment.amount || 0), 0);
-                // Debug log removed
-                // Debug log removed
-            } else if (debt.totalPaidAmount !== undefined && debt.totalPaidAmount !== null) {
-                // ใช้ totalPaidAmount เป็น fallback ถ้าไม่มี paymentHistory
-                paidAmount = debt.totalPaidAmount;
-                // Debug log removed
-            } else if (finalTotalAmount > 0 && finalRemainingAmount < finalTotalAmount) {
-                // คำนวณจาก totalAmount - remainingAmount เป็น fallback สุดท้าย
-                paidAmount = finalTotalAmount - finalRemainingAmount;
-                // Debug log removed
-            } else if (debt.paidInstallments > 0 && debt.monthlyPayment > 0) {
-                // คำนวณจาก paidInstallments × monthlyPayment
-                paidAmount = debt.paidInstallments * debt.monthlyPayment;
-                // Debug log removed
-            } else {
-                // Debug log removed
-            }
-            
-            // ถ้าไม่มียอดรวมจากฐานข้อมูล ให้คำนวณจากเงินต้น + ดอกเบี้ย
-            if (finalTotalAmount === 0 && principal > 0) {
-                finalTotalAmount = principal + interest;
-                // Debug log removed
-            }
-            
-            // ถ้าไม่มียอดคงเหลือ ให้คำนวณจากยอดรวม - ยอดที่ชำระแล้ว
-            if (finalRemainingAmount === 0 && finalTotalAmount > 0) {
-                finalRemainingAmount = finalTotalAmount - paidAmount;
-                // Debug log removed
-            }
-            
-            // Debug log removed
-            
-            // ตรวจสอบว่า modal ถูกเปิดหรือไม่
-            const debtModal = document.getElementById('debtDetailsModal');
-            if (debtModal) {
-                // Debug log removed
-                // Debug log removed
-                // Debug log removed
-                // Debug log removed
-                
-                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
-                const modalBackdrop = document.querySelector('.modal-backdrop');
-                if (modalBackdrop) {
-                    // Debug log removed
-                } else {
-                    // Debug log removed
-                }
-                
-                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
-                const modalDialog = debtModal.querySelector('.modal-dialog');
-                if (modalDialog) {
-                    // Debug log removed
-                    // Debug log removed
-                } else {
-                    // Debug log removed
-                }
-                
-                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
-                const modalContent = debtModal.querySelector('.modal-content');
-                if (modalContent) {
-                    // Debug log removed
-                    // Debug log removed
-                } else {
-                    // Debug log removed
-                }
-                
-                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
-                const modalBody = debtModal.querySelector('.modal-body');
-                if (modalBody) {
-                    // Debug log removed
-                    // Debug log removed
-                } else {
-                    // Debug log removed
-                }
-                
-                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
-                const modalFooter = debtModal.querySelector('.modal-footer');
-                if (modalFooter) {
-                    // Debug log removed
-                    // Debug log removed
-                } else {
-                    // Debug log removed
-                }
-                
-                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
-                const modalHeader = debtModal.querySelector('.modal-header');
-                if (modalHeader) {
-                    // Debug log removed
-                    // Debug log removed
-                } else {
-                    // Debug log removed
-                }
-                
-                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
-                const modalTitle = debtModal.querySelector('.modal-title');
-                if (modalTitle) {
-                    // Debug log removed
-                    // Debug log removed
-                } else {
-                    // Debug log removed
-                }
-                
-                // ตรวจสอบว่า modal ถูกเปิดหรือไม่
-                const modalClose = debtModal.querySelector('.btn-close');
-                if (modalClose) {
-                    // Debug log removed
-                    // Debug log removed
-                } else {
-                    // Debug log removed
-                }
-            } else {
-                console.error('Debt Details Modal not found!');
-            }
-            
-            document.getElementById('modalPrincipal').textContent = `฿${principal.toLocaleString()}`;
-            // แสดงอัตราดอกเบี้ย
-            const interestRateText = (interestRate > 0) ? `${interestRate}%` : 
-                                   (debt.interestType && debt.interestType !== 'none') ? 'ไม่ระบุอัตรา' : 'ไม่มีดอกเบี้ย';
-            document.getElementById('modalInterestRate').textContent = interestRateText;
-            
-            // แสดงดอกเบี้ยพร้อมจำนวนงวด
-            const installments = debt.installmentMonths || 0;
-            const interestText = installments > 0 ? `฿${interest.toLocaleString()} (${installments} งวด)` : `฿${interest.toLocaleString()}`;
-            document.getElementById('modalInterest').textContent = interestText;
-            
-            // อัปเดต DOM elements พร้อม debug
-            const totalAmountElement = document.getElementById('modalTotalAmount');
-            const paidAmountElement = document.getElementById('modalPaidAmount');
-            const remainingAmountElement = document.getElementById('modalRemainingAmount');
-            
-            // Debug log removed
-            // Debug log removed
-            // Debug log removed
-            // Debug log removed
-            
-            if (totalAmountElement) {
-                totalAmountElement.textContent = `฿${finalTotalAmount.toLocaleString()}`;
-                // Debug log removed
-            } else {
-                console.error('modalTotalAmount element not found!');
-            }
-            
-            if (paidAmountElement) {
-                paidAmountElement.textContent = `฿${paidAmount.toLocaleString()}`;
-                // Debug log removed
-                // Debug log removed
-                // Debug log removed
-                
-                // ตรวจสอบว่า element ถูกอัปเดตจริงหรือไม่
-                setTimeout(() => {
-                    // Debug log removed
-                }, 100);
-            } else {
-                console.error('modalPaidAmount element not found!');
-            }
-            
-            if (remainingAmountElement) {
-                remainingAmountElement.textContent = `฿${finalRemainingAmount.toLocaleString()}`;
-                // Debug log removed
-            } else {
-                console.error('modalRemainingAmount element not found!');
-            }
-            
-            // ข้อมูลเพิ่มเติม
-            const monthlyPayment = debt.monthlyPayment || 0;
-            const notes = debt.notes || debt.description || '-';
-            
-            // แปลงประเภทดอกเบี้ยเป็นภาษาไทย
-            const interestType = debt.interestType || 'ไม่ระบุ';
-            let paymentTypeText = '';
-            switch(interestType) {
-                case 'simple':
-                    paymentTypeText = 'ดอกเบี้ยคงที่';
-                    break;
-                case 'compound':
-                    paymentTypeText = 'ดอกเบี้ยลดต้นลดดอก';
-                    break;
-                case 'none':
-                    paymentTypeText = 'ไม่คิดดอกเบี้ย';
-                    break;
-                default:
-                    paymentTypeText = interestType || 'ไม่ระบุ';
-            }
-            
-            // Debug: Log additional information values
-            // Additional info processed
-            
-            document.getElementById('modalPaymentType').textContent = paymentTypeText;
-            document.getElementById('modalInstallments').textContent = installments > 0 ? `${installments} งวด` : '-';
-            document.getElementById('modalMonthlyPayment').textContent = monthlyPayment > 0 ? `฿${monthlyPayment.toLocaleString()}` : '-';
-            document.getElementById('modalNotes').textContent = notes;
-            
-            // แสดง modal
-            const modal = new bootstrap.Modal(document.getElementById('debtDetailsModal'));
-            modal.show();
         })
         .catch(function(error) {
             console.error('Error loading debt details:', error);
             if (typeof showToast === 'function') {
                 showToast('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
             }
+            const modal = document.getElementById('debtDetailsModal');
+            if (modal) {
+                const bootstrapModal = bootstrap.Modal.getInstance(modal);
+                if (bootstrapModal) {
+                    bootstrapModal.hide();
+                }
+            }
+        });
+    } catch (outerError) {
+        console.error('Error in showDebtDetails outer function:', outerError);
+        if (typeof showToast === 'function') {
+            showToast('เกิดข้อผิดพลาดในการแสดงรายละเอียดหนี้', 'error');
+        }
+    }
+}
+
+// ฟังก์ชันสำหรับเติมข้อมูลใน modal content
+function populateDebtDetailsModalContent(debt, modalBody) {
+    // คำนวณข้อมูลทางการเงิน
+    const principal = debt.principal || 0;
+    const interestRate = debt.interestRate !== undefined && debt.interestRate !== null ? debt.interestRate : 0;
+    
+    // คำนวณดอกเบี้ยจากเงินต้นและอัตราดอกเบี้ย
+    let interest = debt.totalInterest || 0;
+    if (interest === 0 && principal > 0 && interestRate > 0) {
+        interest = (principal * interestRate) / 100;
+    }
+    
+    const totalAmount = debt.totalAmount || debt.amount || 0;
+    const remainingAmount = debt.remainingAmount || 0;
+    
+    // คำนวณยอดรวมและยอดคงเหลือ
+    let finalTotalAmount = totalAmount;
+    let finalRemainingAmount = remainingAmount;
+    
+    // คำนวณยอดที่ชำระแล้ว
+    let paidAmount = 0;
+    if (debt.paymentHistory && Array.isArray(debt.paymentHistory) && debt.paymentHistory.length > 0) {
+        paidAmount = debt.paymentHistory.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+    } else if (debt.totalPaidAmount !== undefined && debt.totalPaidAmount !== null) {
+        paidAmount = debt.totalPaidAmount;
+    } else if (finalTotalAmount > 0 && finalRemainingAmount < finalTotalAmount) {
+        paidAmount = finalTotalAmount - finalRemainingAmount;
+    } else if (debt.paidInstallments > 0 && debt.monthlyPayment > 0) {
+        paidAmount = debt.paidInstallments * debt.monthlyPayment;
+    }
+    
+    // ถ้าไม่มียอดรวมจากฐานข้อมูล ให้คำนวณจากเงินต้น + ดอกเบี้ย
+    if (finalTotalAmount === 0 && principal > 0) {
+        finalTotalAmount = principal + interest;
+    }
+    
+    // ถ้าไม่มียอดคงเหลือ ให้คำนวณจากยอดรวม - ยอดที่ชำระแล้ว
+    if (finalRemainingAmount === 0 && finalTotalAmount > 0) {
+        finalRemainingAmount = finalTotalAmount - paidAmount;
+    }
+    
+    // ข้อมูลเพิ่มเติม
+    const monthlyPayment = debt.monthlyPayment || 0;
+    const notes = debt.notes || debt.description || '-';
+    const installments = debt.installments || 0;
+    
+    // แปลงประเภทดอกเบี้ยเป็นภาษาไทย
+    const interestType = debt.interestType || 'ไม่ระบุ';
+    let paymentTypeText = '';
+    switch(interestType) {
+        case 'simple':
+            paymentTypeText = 'ดอกเบี้ยคงที่';
+            break;
+        case 'compound':
+            paymentTypeText = 'ดอกเบี้ยลดต้นลดดอก';
+            break;
+        case 'none':
+            paymentTypeText = 'ไม่คิดดอกเบี้ย';
+            break;
+        default:
+            paymentTypeText = interestType || 'ไม่ระบุ';
+    }
+    
+    // จัดรูปแบบวันที่
+    const createdDate = debt.createdAt ? new Date(debt.createdAt.toDate()).toLocaleDateString('th-TH') : '-';
+    const dueDate = debt.dueDate ? new Date(debt.dueDate.toDate()).toLocaleDateString('th-TH') : '-';
+    const updatedAt = debt.updatedAt ? new Date(debt.updatedAt.toDate()).toLocaleDateString('th-TH') : '-';
+    
+    // สร้าง status badge
+    const statusBadge = getStatusBadge(debt.status);
+    
+    // Populate modal content with proper HTML structure
+    modalBody.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="text-primary mb-3">
+                    <i class="fas fa-info-circle me-2"></i>ข้อมูลหนี้
+                </h6>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>เจ้าหนี้:</strong></div>
+                            <div class="col-6" id="modalCreditorName">${debt.creditorName || 'ไม่ระบุชื่อเจ้าหนี้'}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>คำอธิบาย:</strong></div>
+                            <div class="col-6" id="modalDescription">${debt.description || 'ไม่มีคำอธิบาย'}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>สถานะ:</strong></div>
+                            <div class="col-6" id="modalStatus">${statusBadge}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>วันที่สร้าง:</strong></div>
+                            <div class="col-6" id="modalCreatedDate">${createdDate}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>วันครบกำหนด:</strong></div>
+                            <div class="col-6" id="modalDueDate">${dueDate}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>อัปเดตล่าสุด:</strong></div>
+                            <div class="col-6">${updatedAt}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h6 class="text-primary mb-3">
+                    <i class="fas fa-calculator me-2"></i>ข้อมูลการเงิน
+                </h6>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>เงินต้น:</strong></div>
+                            <div class="col-6">฿${principal.toLocaleString()}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>อัตราดอกเบี้ย:</strong></div>
+                            <div class="col-6" id="modalInterestRate">${interestRate}%</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>ดอกเบี้ย:</strong></div>
+                            <div class="col-6" id="modalInterest">฿${interest.toLocaleString()}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>ยอดรวม:</strong></div>
+                            <div class="col-6" id="modalTotalAmount">฿${finalTotalAmount.toLocaleString()}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>ชำระแล้ว:</strong></div>
+                            <div class="col-6" id="modalPaidAmount">฿${paidAmount.toLocaleString()}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>ยอดคงเหลือ:</strong></div>
+                            <div class="col-6" id="modalRemainingAmount">฿${finalRemainingAmount.toLocaleString()}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <hr>
+        <div class="row">
+            <div class="col-12">
+                <h6 class="text-primary mb-3">ข้อมูลเพิ่มเติม</h6>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>ประเภทดอกเบี้ย:</strong></div>
+                            <div class="col-6" id="modalPaymentType">${paymentTypeText}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>จำนวนงวด:</strong></div>
+                            <div class="col-6" id="modalInstallments">${installments > 0 ? installments + ' งวด' : '-'}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>ยอดชำระต่อเดือน:</strong></div>
+                            <div class="col-6" id="debtorModalMonthlyPaymentDetail">${monthlyPayment > 0 ? '฿' + monthlyPayment.toLocaleString() : '-'}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>หมายเหตุ:</strong></div>
+                            <div class="col-6" id="modalNotes">${notes}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Function to load debt data specifically for progress calculation
+function loadDebtDataForProgress() {
+    return new Promise(function(resolve, reject) {
+        const userId = window.firebaseAuth.currentUser?.uid;
+        if (!userId) {
+            resolve([]);
+            return;
+        }
+        
+        window.firebaseDb.collection('debts')
+            .where('debtorId', '==', userId)
+            .get()
+            .then(function(querySnapshot) {
+                const debts = [];
+                querySnapshot.forEach(function(doc) {
+                    const debt = doc.data();
+                    debt.id = doc.id;
+                    debts.push(debt);
+                });
+                resolve(debts);
+            })
+            .catch(function(error) {
+                console.error('Error loading debt data for progress:', error);
+                reject(error);
+            });
+    });
+}
+
+// Function to update payment progress
+function updatePaymentProgress() {
+    loadDebtDataForProgress()
+        .then(function(debts) {
+            updatePaymentProgressWithDebts(debts);
+        })
+        .catch(function(error) {
+            console.error('Error loading debt data for progress:', error);
         });
 }
 
-// Payment Progress Functions
-function updatePaymentProgress() {
+// Helper function to update progress with debt data
+function updatePaymentProgressWithDebts(debts) {
     try {
-        console.log('=== updatePaymentProgress called ===');
-        const debts = window.debtorDebts || [];
-        console.log('Debts found:', debts);
-        console.log('Debts length:', debts.length);
-        
         let totalPaidAmount = 0;
         let totalDebtAmount = 0;
         const individualDebts = [];
 
         if (debts && debts.length > 0) {
-            console.log('Processing debts...');
-            debts.forEach((debt, index) => {
-                console.log(`Debt ${index}:`, debt);
-                
-                // Use amount field if principal/interest not available
+            debts.forEach((debt) => {
                 const principal = parseFloat(debt.principal) || parseFloat(debt.amount) || 0;
                 const interest = parseFloat(debt.interest) || 0;
-                const paidAmount = parseFloat(debt.paidAmount) || parseFloat(debt.paid) || 0;
+                const totalAmount = debt.totalAmount || debt.amount || (principal + interest);
                 
-                console.log(`Debt ${index} - Principal: ${principal}, Interest: ${interest}, Paid: ${paidAmount}`);
+                let paidAmount = 0;
+                if (debt.paymentHistory && Array.isArray(debt.paymentHistory)) {
+                    paidAmount = debt.paymentHistory.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+                } else if (debt.totalPaidAmount !== undefined && debt.totalPaidAmount !== null) {
+                    paidAmount = debt.totalPaidAmount;
+                }
                 
-                const totalAmount = principal + interest;
-                const remainingAmount = totalAmount - paidAmount;
-                
-                totalPaidAmount += paidAmount;
                 totalDebtAmount += totalAmount;
+                totalPaidAmount += paidAmount;
                 
                 individualDebts.push({
                     id: debt.id,
-                    title: debt.title || debt.description || 'หนี้ไม่ระบุชื่อ',
-                    principal: principal,
-                    interest: interest,
-                    totalAmount: totalAmount,
-                    paidAmount: paidAmount,
-                    remainingAmount: remainingAmount,
-                    progressPercent: totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
+                    creditorName: debt.creditorName,
+                    amount: totalAmount,
+                    paid: paidAmount,
+                    remaining: totalAmount - paidAmount
                 });
             });
-        } else {
-            console.log('No debts found or debts array is empty');
         }
 
-        console.log('Total calculations:', { totalPaidAmount, totalDebtAmount });
-
-        // Update overall progress
-        const overallProgressPercent = totalDebtAmount > 0 ? (totalPaidAmount / totalDebtAmount) * 100 : 0;
-        console.log('Overall progress percent:', overallProgressPercent);
+        // Update progress display
+        const progressPercentage = totalDebtAmount > 0 ? (totalPaidAmount / totalDebtAmount) * 100 : 0;
         
-        // Update DOM elements
-        const paidAmountElement = document.getElementById('paidAmount');
-        const totalAmountElement = document.getElementById('totalAmount');
-        const overallProgressPercentElement = document.getElementById('overallProgressPercent');
-        const overallProgressBarElement = document.getElementById('overallProgressBar');
-
-        console.log('DOM elements found:', {
-            paidAmountElement: !!paidAmountElement,
-            totalAmountElement: !!totalAmountElement,
-            overallProgressPercentElement: !!overallProgressPercentElement,
-            overallProgressBarElement: !!overallProgressBarElement
-        });
-
-        if (paidAmountElement) {
-            paidAmountElement.textContent = totalPaidAmount.toLocaleString();
-            console.log('Updated paid amount:', totalPaidAmount.toLocaleString());
-        }
+        // Update DOM elements with correct IDs
+        const overallProgressBar = document.getElementById('overallProgressBar');
+        const overallProgressPercent = document.getElementById('overallProgressPercent');
+        const paidAmountProgress = document.getElementById('paidAmountProgress');
+        const totalAmount = document.getElementById('totalAmount');
         
-        if (totalAmountElement) {
-            totalAmountElement.textContent = totalDebtAmount.toLocaleString();
-            console.log('Updated total amount:', totalDebtAmount.toLocaleString());
-        }
-        
-        if (overallProgressPercentElement) {
-            overallProgressPercentElement.textContent = `${Math.round(overallProgressPercent)}%`;
-            console.log('Updated progress percent:', `${Math.round(overallProgressPercent)}%`);
-        }
-        
-        if (overallProgressBarElement) {
-            overallProgressBarElement.style.width = `${overallProgressPercent}%`;
-            overallProgressBarElement.setAttribute('aria-valuenow', overallProgressPercent);
+        if (overallProgressBar) {
+            overallProgressBar.style.width = `${progressPercentage}%`;
+            overallProgressBar.setAttribute('aria-valuenow', progressPercentage);
             
             // Update progress bar color based on completion
-            overallProgressBarElement.className = 'progress-bar progress-bar-striped progress-bar-animated';
-            if (overallProgressPercent >= 100) {
-                overallProgressBarElement.classList.add('bg-gradient-success');
-            } else if (overallProgressPercent >= 75) {
-                overallProgressBarElement.classList.add('bg-gradient-primary');
-            } else if (overallProgressPercent >= 50) {
-                overallProgressBarElement.classList.add('bg-gradient-warning');
+            overallProgressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
+            if (progressPercentage >= 100) {
+                overallProgressBar.classList.add('bg-gradient-success');
+            } else if (progressPercentage >= 75) {
+                overallProgressBar.classList.add('bg-gradient-primary');
+            } else if (progressPercentage >= 50) {
+                overallProgressBar.classList.add('bg-gradient-warning');
             } else {
-                overallProgressBarElement.classList.add('bg-gradient-danger');
+                overallProgressBar.classList.add('bg-gradient-danger');
             }
-            console.log('Updated progress bar width:', `${overallProgressPercent}%`);
         }
-
-        // Update individual debt progress
-        updateIndividualDebtProgress(individualDebts);
+        
+        if (overallProgressPercent) {
+            overallProgressPercent.textContent = `${Math.round(progressPercentage)}%`;
+        }
+        
+        if (paidAmountProgress) {
+            paidAmountProgress.textContent = totalPaidAmount.toLocaleString();
+        }
+        
+        if (totalAmount) {
+            totalAmount.textContent = totalDebtAmount.toLocaleString();
+        }
         
     } catch (error) {
         console.error('Error updating payment progress:', error);
     }
 }
 
-function updateIndividualDebtProgress(debts) {
-    const container = document.getElementById('debtProgressItems');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    if (debts.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-4">
-                <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
-                <h6 class="text-muted">ยังไม่มีข้อมูลหนี้</h6>
-                <p class="text-muted small">เมื่อมีการเพิ่มหนี้ใหม่ แถบสถานะการชำระเงินจะแสดงที่นี่</p>
-            </div>
-        `;
-        return;
-    }
-
-    debts.forEach(debt => {
-        const progressItem = document.createElement('div');
-        progressItem.className = 'debt-progress-item';
-        
-        const progressColor = debt.progressPercent >= 100 ? 'bg-gradient-success' : 
-                            debt.progressPercent >= 75 ? 'bg-gradient-primary' :
-                            debt.progressPercent >= 50 ? 'bg-gradient-warning' : 'bg-gradient-danger';
-        
-        progressItem.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div class="debt-title">${debt.title}</div>
-                <span class="badge ${progressColor.replace('bg-gradient-', 'bg-')} fs-6">
-                    ${Math.round(debt.progressPercent)}%
-                </span>
-            </div>
-            <div class="progress mb-2" style="height: 8px;">
-                <div class="progress-bar ${progressColor}" 
-                     role="progressbar" 
-                     style="width: ${debt.progressPercent}%" 
-                     aria-valuenow="${debt.progressPercent}" 
-                     aria-valuemin="0" 
-                     aria-valuemax="100">
-                </div>
-            </div>
-            <div class="d-flex justify-content-between align-items-center debt-amounts">
-                <span>
-                    <i class="fas fa-check-circle me-1 text-success"></i>
-                    ชำระแล้ว: <strong>${debt.paidAmount.toLocaleString()}</strong> บาท
-                </span>
-                <span>
-                    <i class="fas fa-target me-1 text-info"></i>
-                    ยอดรวม: <strong>${debt.totalAmount.toLocaleString()}</strong> บาท
-                </span>
-            </div>
-        `;
-        
-        container.appendChild(progressItem);
-    });
-}
-
-// Call updatePaymentProgress when debts are loaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Setting up progress updates');
-    // Update progress when page loads - try multiple times to ensure data is loaded
-    setTimeout(updatePaymentProgress, 1000);
-    setTimeout(updatePaymentProgress, 3000);
-    setTimeout(updatePaymentProgress, 5000);
-});
-
-// Update progress when debts change
-if (typeof window !== 'undefined') {
-    // Override the original updateDebts function to also update progress
-    const originalUpdateDebts = window.updateDebts;
-    if (originalUpdateDebts) {
-        window.updateDebts = function(...args) {
-            console.log('updateDebts called - updating progress');
-            const result = originalUpdateDebts.apply(this, args);
-            setTimeout(updatePaymentProgress, 100);
-            setTimeout(updatePaymentProgress, 1000);
-            return result;
-        };
-    }
-    
-    // Also try to hook into any debt loading functions
-    const originalLoadDebts = window.loadDebts;
-    if (originalLoadDebts) {
-        window.loadDebts = function(...args) {
-            console.log('loadDebts called - will update progress after loading');
-            const result = originalLoadDebts.apply(this, args);
-            setTimeout(updatePaymentProgress, 500);
-            setTimeout(updatePaymentProgress, 2000);
-            return result;
-        };
-    }
-}
-
 // Manual trigger function for testing
 window.manualUpdateProgress = function() {
     console.log('Manual progress update triggered');
-    updatePaymentProgress();
 };
-
