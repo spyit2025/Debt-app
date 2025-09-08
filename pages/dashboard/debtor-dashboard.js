@@ -2198,7 +2198,7 @@ function logout() {
         
         // เปลี่ยนเส้นทางไปหน้าเข้าสู่ระบบ
         setTimeout(() => {
-            window.location.href = './index.html';
+            window.location.href = '../../index.html';
         }, 100);
     }).catch(function(error) {
         console.error('Error signing out:', error);

@@ -301,7 +301,7 @@ function checkAuth() {
                     if (!isRedirecting && !window.location.pathname.includes('index.html')) {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
-                            window.location.href = './index.html';
+                            window.location.href = '../../index.html';
                         }, 100);
                     }
                 }
@@ -357,7 +357,7 @@ function checkUserType(userId) {
                     } else if (!isRedirecting) {
                         sessionStorage.setItem('isRedirecting', 'true');
                         setTimeout(() => {
-                            window.location.href = './index.html';
+                            window.location.href = '../../index.html';
                         }, 100);
                     }
                 }
