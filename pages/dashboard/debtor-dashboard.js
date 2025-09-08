@@ -452,10 +452,17 @@ function loadAllUserDebts() {
         // Prepare data for DataTable
         const debtsData = [];
         const mobileDebts = [];
+        const globalDebtsData = []; // Store raw debt data for progress calculation
         
         querySnapshot.forEach(function(doc) {
             const debt = doc.data();
             const debtId = doc.id;
+            
+            // Store raw debt data for progress calculation
+            globalDebtsData.push({
+                id: debtId,
+                ...debt
+            });
             
             // Data for DataTable - ตรวจสอบให้แน่ใจว่ามี 6 คอลัมน์
             const dueDate = debt.dueDate ? new Date(debt.dueDate.toDate()).toLocaleDateString('th-TH') : '-';
@@ -518,6 +525,16 @@ function loadAllUserDebts() {
                 allDebtsList.appendChild(item);
             });
         }
+        
+        // Store debts data globally for progress calculation
+        window.debtorDebts = globalDebtsData;
+        console.log('Stored debts globally:', window.debtorDebts);
+        
+        // Update progress bar after data is loaded
+        if (typeof updatePaymentProgress === 'function') {
+            setTimeout(updatePaymentProgress, 100);
+        }
+        
         }).catch(function(error) {
             console.error('Error loading all debts:', error);
         });
@@ -3299,9 +3316,11 @@ function updatePaymentProgress() {
             console.log('Processing debts...');
             debts.forEach((debt, index) => {
                 console.log(`Debt ${index}:`, debt);
-                const principal = parseFloat(debt.principal) || 0;
+                
+                // Use amount field if principal/interest not available
+                const principal = parseFloat(debt.principal) || parseFloat(debt.amount) || 0;
                 const interest = parseFloat(debt.interest) || 0;
-                const paidAmount = parseFloat(debt.paidAmount) || 0;
+                const paidAmount = parseFloat(debt.paidAmount) || parseFloat(debt.paid) || 0;
                 
                 console.log(`Debt ${index} - Principal: ${principal}, Interest: ${interest}, Paid: ${paidAmount}`);
                 
