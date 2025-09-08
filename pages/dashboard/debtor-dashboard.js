@@ -3288,41 +3288,34 @@ function updatePaymentProgress() {
     try {
         const debts = window.debtorDebts || [];
         
-        if (!debts || debts.length === 0) {
-            // Hide progress section if no debts
-            const progressSection = document.querySelector('.payment-progress-container');
-            if (progressSection) {
-                progressSection.style.display = 'none';
-            }
-            return;
-        }
-
         let totalPaidAmount = 0;
         let totalDebtAmount = 0;
         const individualDebts = [];
 
-        debts.forEach(debt => {
-            const principal = parseFloat(debt.principal) || 0;
-            const interest = parseFloat(debt.interest) || 0;
-            const paidAmount = parseFloat(debt.paidAmount) || 0;
-            
-            const totalAmount = principal + interest;
-            const remainingAmount = totalAmount - paidAmount;
-            
-            totalPaidAmount += paidAmount;
-            totalDebtAmount += totalAmount;
-            
-            individualDebts.push({
-                id: debt.id,
-                title: debt.title || debt.description || 'หนี้ไม่ระบุชื่อ',
-                principal: principal,
-                interest: interest,
-                totalAmount: totalAmount,
-                paidAmount: paidAmount,
-                remainingAmount: remainingAmount,
-                progressPercent: totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
+        if (debts && debts.length > 0) {
+            debts.forEach(debt => {
+                const principal = parseFloat(debt.principal) || 0;
+                const interest = parseFloat(debt.interest) || 0;
+                const paidAmount = parseFloat(debt.paidAmount) || 0;
+                
+                const totalAmount = principal + interest;
+                const remainingAmount = totalAmount - paidAmount;
+                
+                totalPaidAmount += paidAmount;
+                totalDebtAmount += totalAmount;
+                
+                individualDebts.push({
+                    id: debt.id,
+                    title: debt.title || debt.description || 'หนี้ไม่ระบุชื่อ',
+                    principal: principal,
+                    interest: interest,
+                    totalAmount: totalAmount,
+                    paidAmount: paidAmount,
+                    remainingAmount: remainingAmount,
+                    progressPercent: totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
+                });
             });
-        });
+        }
 
         // Update overall progress
         const overallProgressPercent = totalDebtAmount > 0 ? (totalPaidAmount / totalDebtAmount) * 100 : 0;
@@ -3375,6 +3368,17 @@ function updateIndividualDebtProgress(debts) {
     if (!container) return;
 
     container.innerHTML = '';
+
+    if (debts.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                <h6 class="text-muted">ยังไม่มีข้อมูลหนี้</h6>
+                <p class="text-muted small">เมื่อมีการเพิ่มหนี้ใหม่ แถบสถานะการชำระเงินจะแสดงที่นี่</p>
+            </div>
+        `;
+        return;
+    }
 
     debts.forEach(debt => {
         const progressItem = document.createElement('div');
