@@ -126,18 +126,47 @@ function initializeDashboard() {
 
 // Setup event listeners
 function setupEventListeners() {
-    // Logout buttons - prevent duplicate listeners
-    const logoutBtnDesktop = document.getElementById('logoutBtnDesktop');
-    const logoutBtnMobile = document.getElementById('logoutBtnMobile');
+    console.log('Setting up event listeners...');
     
-    if (logoutBtnDesktop && !logoutBtnDesktop.hasAttribute('data-event-bound')) {
-        logoutBtnDesktop.addEventListener('click', handleLogoutClick);
-        logoutBtnDesktop.setAttribute('data-event-bound', 'true');
+    // Logout buttons - prevent duplicate listeners
+    const logoutBtnDesktop = document.getElementById('logoutBtnCreditorDesktop');
+    const logoutBtnMobile = document.getElementById('logoutBtnCreditorMobile');
+    
+    console.log('Found logout buttons:', {
+        desktop: !!logoutBtnDesktop,
+        mobile: !!logoutBtnMobile
+    });
+    
+    if (logoutBtnDesktop) {
+        // Remove existing event listener and data-event-bound attribute
+        logoutBtnDesktop.removeAttribute('data-event-bound');
+        
+        // Remove any existing event listeners by cloning the element
+        const newLogoutBtn = logoutBtnDesktop.cloneNode(true);
+        logoutBtnDesktop.parentNode.replaceChild(newLogoutBtn, logoutBtnDesktop);
+        
+        newLogoutBtn.addEventListener('click', handleLogoutClick);
+        newLogoutBtn.setAttribute('data-event-bound', 'true');
+        
+        // Force button to be clickable
+        setTimeout(() => {
+            newLogoutBtn.style.cursor = 'pointer';
+            newLogoutBtn.style.pointerEvents = 'auto';
+            newLogoutBtn.style.zIndex = '9999';
+            newLogoutBtn.style.position = 'relative';
+        }, 1000);
     }
     
-    if (logoutBtnMobile && !logoutBtnMobile.hasAttribute('data-event-bound')) {
-        logoutBtnMobile.addEventListener('click', handleLogoutClick);
-        logoutBtnMobile.setAttribute('data-event-bound', 'true');
+    if (logoutBtnMobile) {
+        // Remove existing event listener and data-event-bound attribute
+        logoutBtnMobile.removeAttribute('data-event-bound');
+        
+        // Remove any existing event listeners by cloning the element
+        const newMobileLogoutBtn = logoutBtnMobile.cloneNode(true);
+        logoutBtnMobile.parentNode.replaceChild(newMobileLogoutBtn, logoutBtnMobile);
+        
+        newMobileLogoutBtn.addEventListener('click', handleLogoutClick);
+        newMobileLogoutBtn.setAttribute('data-event-bound', 'true');
     }
     
     // Navigation links
@@ -1017,17 +1046,20 @@ function updateElement(id, value) {
 
 // Handle logout button click
 function handleLogoutClick(e) {
+    console.log('Logout button clicked');
     e.preventDefault();
     e.stopPropagation();
     
     // Prevent multiple calls - enhanced protection
     if (window.logoutInProgress) {
+        console.log('Logout already in progress');
         return false;
     }
     
     // Check if function has been called recently
     const now = Date.now();
     if (window.lastLogoutCall && (now - window.lastLogoutCall) < 2000) {
+        console.log('Logout called too soon');
         return false;
     }
     
@@ -1037,7 +1069,9 @@ function handleLogoutClick(e) {
     try {
         // Single confirmation
         if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
+            console.log('User confirmed logout');
             logoutUser().then(() => {
+                console.log('Logout successful');
                 window.location.href = '../../index.html';
             }).catch(error => {
                 console.error('Logout error:', error);
@@ -1049,6 +1083,7 @@ function handleLogoutClick(e) {
                 }, 3000);
             });
         } else {
+            console.log('User cancelled logout');
             window.logoutInProgress = false;
         }
     } catch (error) {

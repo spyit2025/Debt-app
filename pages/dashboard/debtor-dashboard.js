@@ -100,14 +100,39 @@ function setupEventListeners() {
     const logoutBtnDebtorDesktop = document.getElementById('logoutBtnDebtorDesktop');
     const logoutBtnDebtorMobile = document.getElementById('logoutBtnDebtorMobile');
     
-    if (logoutBtnDebtorDesktop && !logoutBtnDebtorDesktop.hasAttribute('data-event-bound')) {
-        logoutBtnDebtorDesktop.addEventListener('click', handleDebtorLogoutClick);
-        logoutBtnDebtorDesktop.setAttribute('data-event-bound', 'true');
+    if (logoutBtnDebtorDesktop) {
+        // Remove existing event listener and data-event-bound attribute
+        logoutBtnDebtorDesktop.removeAttribute('data-event-bound');
+        
+        // Remove any existing event listeners by cloning the element
+        const newLogoutBtn = logoutBtnDebtorDesktop.cloneNode(true);
+        logoutBtnDebtorDesktop.parentNode.replaceChild(newLogoutBtn, logoutBtnDebtorDesktop);
+        
+        newLogoutBtn.addEventListener('click', handleDebtorLogoutClick);
+        newLogoutBtn.setAttribute('data-event-bound', 'true');
+        
+        // Force button to be clickable
+        setTimeout(() => {
+            newLogoutBtn.style.cursor = 'pointer';
+            newLogoutBtn.style.pointerEvents = 'auto';
+            newLogoutBtn.style.zIndex = '9999';
+            newLogoutBtn.style.position = 'relative';
+            newLogoutBtn.style.display = 'block';
+            newLogoutBtn.style.visibility = 'visible';
+            newLogoutBtn.style.opacity = '1';
+        }, 1000);
     }
     
-    if (logoutBtnDebtorMobile && !logoutBtnDebtorMobile.hasAttribute('data-event-bound')) {
-        logoutBtnDebtorMobile.addEventListener('click', handleDebtorLogoutClick);
-        logoutBtnDebtorMobile.setAttribute('data-event-bound', 'true');
+    if (logoutBtnDebtorMobile) {
+        // Remove existing event listener and data-event-bound attribute
+        logoutBtnDebtorMobile.removeAttribute('data-event-bound');
+        
+        // Remove any existing event listeners by cloning the element
+        const newMobileLogoutBtn = logoutBtnDebtorMobile.cloneNode(true);
+        logoutBtnDebtorMobile.parentNode.replaceChild(newMobileLogoutBtn, logoutBtnDebtorMobile);
+        
+        newMobileLogoutBtn.addEventListener('click', handleDebtorLogoutClick);
+        newMobileLogoutBtn.setAttribute('data-event-bound', 'true');
     }
     
     // Navigation links - Force rebind all links

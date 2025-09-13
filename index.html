@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="ระบบจัดการหนี้สินแบบครบวงจรสำหรับเจ้าหนี้และลูกหนี้">
     <meta name="keywords" content="จัดการหนี้, ระบบหนี้, เจ้าหนี้, ลูกหนี้">
     <meta name="author" content="Debt Management System">
@@ -24,20 +24,32 @@
     <!-- Apple Touch Icon - Single optimized version -->
     <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
     
-    <!-- Preload critical resources -->
+    <!-- Preload critical resources for faster loading -->
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="./css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="./css/bootstrap-alerts.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="./css/table-styling.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="./css/consolidated-core.css?v=6.1.0" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="./css/consolidated-mobile.css?v=6.1.0" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="./css/login.css?v=6.1.0" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    
+    <!-- Preload critical JavaScript with proper attributes -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" as="script" crossorigin="anonymous">
+    <link rel="preload" href="./js/firebase-config.js?v=20250913143643" as="script" crossorigin="anonymous">
+    <link rel="preload" href="./js/auth.js?v=20250913143643" as="script" crossorigin="anonymous">
+    
+    <!-- DNS prefetch for external resources -->
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     
     <!-- Fallback for browsers that don't support preload onload -->
     <noscript>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap">
-        <link rel="stylesheet" href="./css/style.css">
-        <link rel="stylesheet" href="./css/bootstrap-alerts.css">
-        <link rel="stylesheet" href="./css/table-styling.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="./css/consolidated-core.css?v=6.1.0">
+        <link rel="stylesheet" href="./css/consolidated-mobile.css?v=6.1.0">
+        <link rel="stylesheet" href="./css/login.css?v=6.1.0">
     </noscript>
     
     <!-- Favicon -->
@@ -50,8 +62,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="./css/main.css?v=5.0.0">
-    <link rel="stylesheet" href="./css/login.css?v=5.0.0">
+    <link rel="stylesheet" href="./css/consolidated-core.css?v=6.1.0">
+    <link rel="stylesheet" href="./css/consolidated-mobile.css?v=6.1.0">
+    <link rel="stylesheet" href="./css/login.css?v=6.1.0">
     
     <!-- Mobile Console (Eruda) -->
     <script src="https://cdn.jsdelivr.net/npm/eruda@3.0.1/eruda.min.js"></script>
@@ -63,12 +76,12 @@
     </script>
 </head>
 <body>
-    <!-- Simple Header for Login Page -->
+    <!-- Enhanced Header for Login Page -->
     <nav class="navbar navbar-expand-lg navbar-custom login-navbar fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
                 <i class="fas fa-chart-line me-2"></i>
-                ระบบจัดการหนี้
+                <span class="fw-bold">ระบบจัดการหนี้</span>
             </a>
             
             <!-- Only show navigation menu on dashboard pages, not on login page -->
@@ -123,26 +136,36 @@
 
     <div class="container-fluid">
         <div class="row min-vh-100">
-            <!-- ด้านซ้าย - พื้นหลัง -->
+            <!-- Enhanced Left Side - Background -->
             <div class="col-lg-6 d-none d-lg-block bg-primary-gradient">
-                <div class="d-flex align-items-center justify-content-center h-100">
-                    <div class="text-center text-white">
-                        <i class="fas fa-chart-line fa-5x mb-4"></i>
-                        <h1 class="display-4 fw-bold mb-3">ระบบจัดการหนี้</h1>
-                        <p class="lead">จัดการหนี้สินอย่างเป็นระบบ ปลอดภัย และมีประสิทธิภาพ</p>
-                        <div class="row mt-5">
+                <div class="d-flex align-items-center justify-content-center h-100 position-relative">
+                    <!-- Background Pattern -->
+                    <div class="bg-pattern"></div>
+                    
+                    <div class="text-center text-white position-relative z-1">
+                        <div class="login-icon-container mb-4">
+                            <i class="fas fa-chart-line fa-5x text-white"></i>
+                        </div>
+                        <h1 class="display-4 fw-bold mb-3 text-white">ระบบจัดการหนี้</h1>
+                        <p class="lead mb-4 text-white-50">จัดการหนี้สินอย่างเป็นระบบ ปลอดภัย และมีประสิทธิภาพ</p>
+                        
+                        <div class="row mt-5 g-4">
                             <div class="col-md-6">
-                                <div class="feature-item">
-                                    <i class="fas fa-shield-alt fa-2x mb-3"></i>
-                                    <h5>ปลอดภัย</h5>
-                                    <p>ข้อมูลของคุณได้รับการปกป้องอย่างดี</p>
+                                <div class="feature-item text-center">
+                                    <div class="feature-icon mb-3">
+                                        <i class="fas fa-shield-alt fa-2x text-white"></i>
+                                    </div>
+                                    <h5 class="fw-semibold text-white">ปลอดภัย</h5>
+                                    <p class="text-white-50 small">ข้อมูลของคุณได้รับการปกป้องอย่างดี</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="feature-item">
-                                    <i class="fas fa-mobile-alt fa-2x mb-3"></i>
-                                    <h5>ใช้งานง่าย</h5>
-                                    <p>รองรับทุกอุปกรณ์</p>
+                                <div class="feature-item text-center">
+                                    <div class="feature-icon mb-3">
+                                        <i class="fas fa-mobile-alt fa-2x text-white"></i>
+                                    </div>
+                                    <h5 class="fw-semibold text-white">ใช้งานง่าย</h5>
+                                    <p class="text-white-50 small">รองรับทุกอุปกรณ์</p>
                                 </div>
                             </div>
                         </div>
@@ -150,23 +173,23 @@
                 </div>
             </div>
             
-            <!-- ด้านขวา - ฟอร์มเข้าสู่ระบบ -->
+            <!-- Enhanced Right Side - Login Form -->
             <div class="col-lg-6 d-flex align-items-center justify-content-center">
                 <div class="login-container w-100 px-4">
-                    <div class="text-center mb-4 mt-5">
-                        <h2 class="fw-bold text-primary">เข้าสู่ระบบ</h2>
-                        <p class="text-muted">กรอกข้อมูลเพื่อเข้าสู่ระบบ</p>
+                    <div class="text-center mb-4 mt-4">
+                        <h2 class="fw-bold text-primary mb-2">เข้าสู่ระบบ</h2>
+                        <p class="text-muted">กรอกข้อมูลเพื่อเข้าสู่ระบบจัดการหนี้</p>
                     </div>
                     
-                    <!-- ฟอร์มเข้าสู่ระบบ -->
+                    <!-- Enhanced Login Form -->
                     <form id="loginForm" class="needs-validation" novalidate>
                         <div class="mb-3">
-                            <label for="email" class="form-label">อีเมล</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-envelope"></i>
+                            <label for="email" class="form-label fw-semibold">อีเมล</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-envelope text-primary"></i>
                                 </span>
-                                <input type="email" class="form-control" id="email" required>
+                                <input type="email" class="form-control border-start-0" id="email" placeholder="กรอกอีเมลของคุณ" required>
                                 <div class="invalid-feedback">
                                     กรุณากรอกอีเมลที่ถูกต้อง
                                 </div>
@@ -174,13 +197,13 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="password" class="form-label">รหัสผ่าน</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-lock"></i>
+                            <label for="password" class="form-label fw-semibold">รหัสผ่าน</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-lock text-primary"></i>
                                 </span>
-                                <input type="password" class="form-control" id="password" required>
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="แสดง/ซ่อนรหัสผ่าน">
+                                <input type="password" class="form-control border-start-0" id="password" placeholder="กรอกรหัสผ่าน" required>
+                                <button class="btn btn-outline-secondary border-start-0" type="button" id="togglePassword" aria-label="แสดง/ซ่อนรหัสผ่าน">
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 <div class="invalid-feedback">
@@ -189,28 +212,27 @@
                             </div>
                         </div>
                         
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="rememberMe">
-                            <label class="form-check-label" for="rememberMe">
-                                จดจำฉัน
-                            </label>
+                        <div class="mb-3 d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberMe">
+                                <label class="form-check-label fw-medium" for="rememberMe">
+                                    จดจำฉัน
+                                </label>
+                            </div>
+                            <a href="#" class="text-decoration-none text-primary fw-medium">ลืมรหัสผ่าน?</a>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 py-2 mb-3 fw-semibold">
                             <i class="fas fa-sign-in-alt me-2"></i>
                             เข้าสู่ระบบ
                         </button>
-                        
-                        <div class="text-center">
-                            <a href="#" class="text-decoration-none">ลืมรหัสผ่าน?</a>
-                        </div>
                     </form>
                     
-                    <hr class="my-4">
+                    <hr class="my-3">
                     
                     <div class="text-center">
-                        <p class="text-muted">ยังไม่มีบัญชี? 
-                            <a href="pages/auth/register.html" class="text-decoration-none fw-bold">ลงทะเบียน</a>
+                        <p class="text-muted mb-0">ยังไม่มีบัญชี? 
+                            <a href="pages/auth/register.html" class="text-decoration-none fw-bold text-primary">ลงทะเบียน</a>
                         </p>
                     </div>
                 </div>
@@ -219,16 +241,17 @@
     </div>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer crossorigin="anonymous"></script>
     
     <!-- Custom JS -->
-    <script type="module" src="./js/firebase-config.js?v=20250913143643"></script>
-    <script type="module" src="./js/auth.js?v=20250913143643"></script>
+    <script type="module" src="./js/firebase-config.js?v=20250913143643" crossorigin="anonymous"></script>
+    <script type="module" src="./js/auth.js?v=20250913143643" crossorigin="anonymous"></script>
     
-    <!-- Login Page Specific JS -->
+    <!-- Performance optimization script -->
     <script>
-        // Hide navigation menu on login page
+        // Optimize loading performance
         document.addEventListener('DOMContentLoaded', function() {
+            // Hide navigation menu on login page
             const dashboardNav = document.getElementById('dashboardNav');
             if (dashboardNav) {
                 dashboardNav.classList.add('d-none');
@@ -236,6 +259,62 @@
             
             // Add login page specific styling
             document.body.classList.add('login-page');
+            
+            // Optimize form interactions
+            const form = document.getElementById('loginForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // Add loading state
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>กำลังเข้าสู่ระบบ...';
+                        submitBtn.disabled = true;
+                    }
+                });
+            }
+            
+            // Optimize password toggle
+            const togglePassword = document.getElementById('togglePassword');
+            if (togglePassword) {
+                togglePassword.addEventListener('click', function() {
+                    const passwordInput = document.getElementById('password');
+                    const icon = this.querySelector('i');
+                    
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            }
+            
+            // Preload critical images and resources
+            const criticalImages = [
+                'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💰</text></svg>'
+            ];
+            
+            criticalImages.forEach(src => {
+                const img = new Image();
+                img.src = src;
+            });
+        });
+        
+        // Optimize scroll performance
+        let ticking = false;
+        function updateScroll() {
+            // Scroll-based optimizations can be added here
+            ticking = false;
+        }
+        
+        window.addEventListener('scroll', function() {
+            if (!ticking) {
+                requestAnimationFrame(updateScroll);
+                ticking = true;
+            }
         });
     </script>
 

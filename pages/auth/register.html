@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="ลงทะเบียนระบบจัดการหนี้">
     
     <!-- Security Headers -->
@@ -13,30 +13,52 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
     
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    
     <!-- PWA Manifest -->
     <link rel="manifest" href="../../manifest.json">
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Preload critical resources for faster loading -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="../../css/consolidated-core.css?v=6.1.0" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="../../css/consolidated-mobile.css?v=6.1.0" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="../../css/login.css?v=6.1.0" as="style" onload="this.onload=null;this.rel='stylesheet'">
     
-    <!-- Google Fonts - Noto Sans Thai -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Preload critical JavaScript with proper attributes -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" as="script" crossorigin="anonymous">
+    <link rel="preload" href="../../js/firebase-config.js?v=20250913143643" as="script" crossorigin="anonymous">
+    <link rel="preload" href="../../js/auth.js?v=20250913143643" as="script" crossorigin="anonymous">
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- DNS prefetch for external resources -->
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    
+    <!-- Fallback for browsers that don't support preload onload -->
+    <noscript>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="../../css/consolidated-core.css?v=6.1.0">
+        <link rel="stylesheet" href="../../css/consolidated-mobile.css?v=6.1.0">
+        <link rel="stylesheet" href="../../css/login.css?v=6.1.0">
+    </noscript>
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../../css/consolidated-core.css?v=6.0.0">
-    <link rel="stylesheet" href="../../css/consolidated-mobile.css?v=6.0.0">
-    <link rel="stylesheet" href="../../css/consolidated-pages.css?v=6.0.0">
+    <link rel="stylesheet" href="../../css/consolidated-core.css?v=6.1.0">
+    <link rel="stylesheet" href="../../css/consolidated-mobile.css?v=6.1.0">
+    <link rel="stylesheet" href="../../css/login.css?v=6.1.0">
 </head>
 <body>
-    <!-- Simple Header for Register Page -->
+    <!-- Enhanced Header for Register Page -->
     <nav class="navbar navbar-expand-lg navbar-custom login-navbar fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="../../index.html">
                 <i class="fas fa-chart-line me-2"></i>
-                ระบบจัดการหนี้
+                <span class="fw-bold">ระบบจัดการหนี้</span>
             </a>
             
             <!-- Only show navigation menu on dashboard pages, not on register page -->
@@ -91,26 +113,36 @@
 
     <div class="container-fluid">
         <div class="row min-vh-100">
-            <!-- Left Side - Background -->
+            <!-- Enhanced Left Side - Background -->
             <div class="col-lg-6 d-none d-lg-block bg-primary-gradient">
-                <div class="d-flex align-items-center justify-content-center h-100">
-                    <div class="text-center text-white">
-                        <i class="fas fa-user-plus fa-5x mb-4"></i>
-                        <h1 class="display-4 fw-bold mb-3">สร้างบัญชีใหม่</h1>
-                        <p class="lead">เข้าร่วมระบบจัดการหนี้สินของเรา</p>
-                        <div class="row mt-5">
+                <div class="d-flex align-items-center justify-content-center h-100 position-relative">
+                    <!-- Background Pattern -->
+                    <div class="bg-pattern"></div>
+                    
+                    <div class="text-center text-white position-relative z-1">
+                        <div class="login-icon-container mb-4">
+                            <i class="fas fa-user-plus fa-5x text-white"></i>
+                        </div>
+                        <h1 class="display-4 fw-bold mb-3 text-white">สร้างบัญชีใหม่</h1>
+                        <p class="lead mb-4 text-white-50">เข้าร่วมระบบจัดการหนี้สินของเรา</p>
+                        
+                        <div class="row mt-5 g-4">
                             <div class="col-md-6">
-                                <div class="feature-item">
-                                    <i class="fas fa-shield-alt fa-2x mb-3"></i>
-                                    <h5>ปลอดภัย</h5>
-                                    <p>ข้อมูลของคุณได้รับการปกป้องอย่างดี</p>
+                                <div class="feature-item text-center">
+                                    <div class="feature-icon mb-3">
+                                        <i class="fas fa-shield-alt fa-2x text-white"></i>
+                                    </div>
+                                    <h5 class="fw-semibold text-white">ปลอดภัย</h5>
+                                    <p class="text-white-50 small">ข้อมูลของคุณได้รับการปกป้องอย่างดี</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="feature-item">
-                                    <i class="fas fa-mobile-alt fa-2x mb-3"></i>
-                                    <h5>ใช้งานง่าย</h5>
-                                    <p>รองรับทุกอุปกรณ์</p>
+                                <div class="feature-item text-center">
+                                    <div class="feature-icon mb-3">
+                                        <i class="fas fa-mobile-alt fa-2x text-white"></i>
+                                    </div>
+                                    <h5 class="fw-semibold text-white">ใช้งานง่าย</h5>
+                                    <p class="text-white-50 small">รองรับทุกอุปกรณ์</p>
                                 </div>
                             </div>
                         </div>
@@ -118,23 +150,23 @@
                 </div>
             </div>
             
-            <!-- Right Side - Register Form -->
+            <!-- Enhanced Right Side - Register Form -->
             <div class="col-lg-6 d-flex align-items-center justify-content-center">
                 <div class="login-container w-100 px-4">
-                    <div class="text-center mb-4">
-                        <h2 class="fw-bold text-primary">ลงทะเบียน - ลูกหนี้</h2>
+                    <div class="text-center mb-4 mt-4">
+                        <h2 class="fw-bold text-primary mb-2">ลงทะเบียน - ลูกหนี้</h2>
                         <p class="text-muted">สร้างบัญชีลูกหนี้ใหม่และเริ่มใช้งานระบบ</p>
                     </div>
                     
-                    <!-- Register Form -->
+                    <!-- Enhanced Register Form -->
                     <form id="registerForm" class="needs-validation" novalidate>
                         <div class="mb-3">
-                            <label for="displayName" class="form-label">ชื่อ-นามสกุล</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-user"></i>
+                            <label for="displayName" class="form-label fw-semibold">ชื่อ-นามสกุล</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-user text-primary"></i>
                                 </span>
-                                <input type="text" class="form-control" id="displayName" required>
+                                <input type="text" class="form-control border-start-0" id="displayName" placeholder="กรอกชื่อ-นามสกุลของคุณ" required>
                                 <div class="invalid-feedback">
                                     กรุณากรอกชื่อ-นามสกุล
                                 </div>
@@ -142,12 +174,12 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="registerEmail" class="form-label">อีเมล</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-envelope"></i>
+                            <label for="registerEmail" class="form-label fw-semibold">อีเมล</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-envelope text-primary"></i>
                                 </span>
-                                <input type="email" class="form-control" id="registerEmail" required>
+                                <input type="email" class="form-control border-start-0" id="registerEmail" placeholder="กรอกอีเมลของคุณ" required>
                                 <div class="invalid-feedback">
                                     กรุณากรอกอีเมลที่ถูกต้อง
                                 </div>
@@ -155,13 +187,13 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="registerPassword" class="form-label">รหัสผ่าน</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-lock"></i>
+                            <label for="registerPassword" class="form-label fw-semibold">รหัสผ่าน</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-lock text-primary"></i>
                                 </span>
-                                <input type="password" class="form-control" id="registerPassword" required>
-                                <button class="btn btn-outline-secondary" type="button" id="toggleRegisterPassword" aria-label="แสดง/ซ่อนรหัสผ่าน">
+                                <input type="password" class="form-control border-start-0" id="registerPassword" placeholder="กรอกรหัสผ่าน" required>
+                                <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleRegisterPassword" aria-label="แสดง/ซ่อนรหัสผ่าน">
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 <div class="invalid-feedback">
@@ -171,13 +203,13 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="confirmPassword" class="form-label">ยืนยันรหัสผ่าน</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-lock"></i>
+                            <label for="confirmPassword" class="form-label fw-semibold">ยืนยันรหัสผ่าน</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-lock text-primary"></i>
                                 </span>
-                                <input type="password" class="form-control" id="confirmPassword" required>
-                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword" aria-label="แสดง/ซ่อนรหัสผ่าน">
+                                <input type="password" class="form-control border-start-0" id="confirmPassword" placeholder="ยืนยันรหัสผ่าน" required>
+                                <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleConfirmPassword" aria-label="แสดง/ซ่อนรหัสผ่าน">
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 <div class="invalid-feedback">
@@ -186,18 +218,17 @@
                             </div>
                         </div>
                         
-                        
-                        <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 py-2 mb-3 fw-semibold">
                             <i class="fas fa-user-plus me-2"></i>
                             ลงทะเบียน
                         </button>
                     </form>
                     
-                    <hr class="my-4">
+                    <hr class="my-3">
                     
                     <div class="text-center">
-                        <p class="text-muted">มีบัญชีอยู่แล้ว? 
-                            <a href="../../index.html" class="text-decoration-none fw-bold">เข้าสู่ระบบ</a>
+                        <p class="text-muted mb-0">มีบัญชีอยู่แล้ว? 
+                            <a href="../../index.html" class="text-decoration-none fw-bold text-primary">เข้าสู่ระบบ</a>
                         </p>
                     </div>
                 </div>
@@ -206,16 +237,17 @@
     </div>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     
     <!-- Custom JS -->
-    <script type="module" src="../../js/firebase-config.js?v=20250913143643"></script>
-    <script type="module" src="../../js/auth.js?v=20250913143643"></script>
+    <script type="module" src="../../js/firebase-config.js?v=20250913143643" crossorigin="anonymous"></script>
+    <script type="module" src="../../js/auth.js?v=20250913143643" crossorigin="anonymous"></script>
     
-    <!-- Register Page Specific JS -->
+    <!-- Performance optimization script -->
     <script>
-        // Hide navigation menu on register page
+        // Optimize loading performance
         document.addEventListener('DOMContentLoaded', function() {
+            // Hide navigation menu on register page
             const dashboardNav = document.getElementById('registerDashboardNav');
             if (dashboardNav) {
                 dashboardNav.classList.add('d-none');
@@ -223,6 +255,98 @@
             
             // Add register page specific styling
             document.body.classList.add('register-page');
+            
+            // Optimize form interactions
+            const form = document.getElementById('registerForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // Add loading state
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>กำลังลงทะเบียน...';
+                        submitBtn.disabled = true;
+                    }
+                });
+            }
+            
+            // Optimize password toggles
+            const toggleRegisterPassword = document.getElementById('toggleRegisterPassword');
+            const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+            
+            if (toggleRegisterPassword) {
+                toggleRegisterPassword.addEventListener('click', function() {
+                    const passwordInput = document.getElementById('registerPassword');
+                    const icon = this.querySelector('i');
+                    
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            }
+            
+            if (toggleConfirmPassword) {
+                toggleConfirmPassword.addEventListener('click', function() {
+                    const passwordInput = document.getElementById('confirmPassword');
+                    const icon = this.querySelector('i');
+                    
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            }
+            
+            // Password confirmation validation
+            const registerPassword = document.getElementById('registerPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+            
+            if (registerPassword && confirmPassword) {
+                function validatePasswordMatch() {
+                    if (confirmPassword.value && registerPassword.value !== confirmPassword.value) {
+                        confirmPassword.setCustomValidity('รหัสผ่านไม่ตรงกัน');
+                    } else {
+                        confirmPassword.setCustomValidity('');
+                    }
+                }
+                
+                registerPassword.addEventListener('input', validatePasswordMatch);
+                confirmPassword.addEventListener('input', validatePasswordMatch);
+            }
+            
+            // Preload critical images and resources
+            const criticalImages = [
+                'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💰</text></svg>'
+            ];
+            
+            criticalImages.forEach(src => {
+                const img = new Image();
+                img.src = src;
+            });
+        });
+        
+        // Optimize scroll performance
+        let ticking = false;
+        function updateScroll() {
+            // Scroll-based optimizations can be added here
+            ticking = false;
+        }
+        
+        window.addEventListener('scroll', function() {
+            if (!ticking) {
+                requestAnimationFrame(updateScroll);
+                ticking = true;
+            }
         });
     </script>
 </body>

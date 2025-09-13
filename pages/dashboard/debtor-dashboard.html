@@ -58,6 +58,18 @@
             color: #ffffff;
         }
         
+        /* Force logout button to be clickable */
+        #logoutBtnDebtorDesktop,
+        #logoutBtnDebtorMobile {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            z-index: 9999 !important;
+            position: relative !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
         /* Prevent navigation menu from wrapping on large screens */
         .dashboard-header .nav {
             flex-wrap: nowrap;
@@ -1087,7 +1099,7 @@
                             <i class="fas fa-history me-2"></i>
                             ประวัติ
                         </a>
-                        <a class="nav-link" href="#" id="logoutBtnDebtorDesktop">
+                        <a class="nav-link" href="javascript:void(0)" id="logoutBtnDebtorDesktop" data-event-bound="true">
                             <i class="fas fa-sign-out-alt me-2"></i>
                             ออกจากระบบ
                         </a>
@@ -1145,10 +1157,13 @@
                     ประวัติ
                 </a>
                 <hr class="my-3">
-                <a class="nav-link text-danger" href="#" id="logoutBtnDebtorMobile" data-bs-dismiss="offcanvas">
-                    <i class="fas fa-sign-out-alt me-2"></i>
-                    ออกจากระบบ
-                </a>
+                <!-- Logout Button -->
+                <div class="mt-3 pt-3 border-top border-white-10">
+                    <a class="nav-link text-danger" href="javascript:void(0)" id="logoutBtnDebtorMobile" data-bs-dismiss="offcanvas">
+                        <i class="fas fa-sign-out-alt me-3"></i>
+                        ออกจากระบบ
+                    </a>
+                </div>
             </nav>
         </div>
     </div>
