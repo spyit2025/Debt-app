@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงานระบบ - E-Learning Platform</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    
+    
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+        }
+        
+        .sidebar-sticky {
+            position: relative;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: .5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        
+
+        
+        .navbar .navbar-toggler {
+            top: .25rem;
+            right: 1rem;
+        }
+        
+        .navbar .form-control {
+            padding: .75rem 1rem;
+            border-width: 0;
+            border-radius: 0;
+        }
+        
+        .form-control-dark {
+            color: #fff;
+            background-color: rgba(255, 255, 255, .1);
+            border-color: rgba(255, 255, 255, .1);
+        }
+        
+        .form-control-dark:focus {
+            border-color: transparent;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, .25);
+        }
+        
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+        
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        .report-card {
+            transition: transform 0.2s;
+        }
+        
+        .report-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stat-card {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+        }
+        
+        .stat-card .text-white-50 {
+            color: #6c757d !important;
+        }
+        
+        .stat-card .text-white {
+            color: #333 !important;
+        }
+        
+        .stat-card .bi {
+            color: #667eea !important;
+        }
+        
+        .stat-card.users {
+            border-left: 4px solid #f093fb;
+        }
+        
+        .stat-card.users .bi {
+            color: #f093fb !important;
+        }
+        
+        .stat-card.courses {
+            border-left: 4px solid #4facfe;
+        }
+        
+        .stat-card.courses .bi {
+            color: #4facfe !important;
+        }
+        
+        .stat-card.quizzes {
+            border-left: 4px solid #43e97b;
+        }
+        
+        .stat-card.quizzes .bi {
+            color: #43e97b !important;
+        }
+        
+        .stat-card.enrollments {
+            border-left: 4px solid #fa709a;
+        }
+        
+        .stat-card.enrollments .bi {
+            color: #fa709a !important;
+        }
+        
+        /* เพิ่มขนาดตัวหนังสือและไอคอนให้ใหญ่ขึ้น */
+        .stat-card .text-xs {
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+        }
+        
+        .stat-card .h5 {
+            font-size: 2.5rem !important;
+            font-weight: 700 !important;
+        }
+        
+        .stat-card .bi {
+            font-size: 3rem !important;
+        }
+        
+        .stat-card .card-body {
+            padding: 1.5rem !important;
+        }
+        
+        /* แก้ไขสีตัวหนังสือใน nav-tabs ให้เป็นสีเข้ม */
+        .nav-tabs .nav-link {
+            color: #495057 !important;
+            background-color: #f8f9fa !important;
+            border: 1px solid #dee2e6 !important;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: #212529 !important;
+            background-color: #e9ecef !important;
+            border-color: #adb5bd !important;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: #fff !important;
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+        }
+        
+        .nav-tabs .nav-link.active:hover {
+            color: #fff !important;
+            background-color: #0b5ed7 !important;
+            border-color: #0a58ca !important;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../dashboard/admin-dashboard.html">
+                <i class="bi bi-mortarboard-fill me-2"></i>
+                E-Learning Platform
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" title="เปิด/ปิดเมนู">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto" id="mainMenu">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../dashboard/admin-dashboard.html">
+                            <i class="bi-house me-1"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                
+                    <li class="nav-item">
+                        <a class="nav-link" href="../users/manage-users.html">
+                            <i class="bi-people me-1"></i>
+                            จัดการผู้ใช้
+                        </a>
+                    </li>
+                
+                    <li class="nav-item">
+                        <a class="nav-link" href="../courses/manage-courses.html">
+                            <i class="bi-book me-1"></i>
+                            จัดการคอร์ส
+                        </a>
+                    </li>
+                
+                    <li class="nav-item">
+                        <a class="nav-link" href="../quiz/manage-quizzes.html">
+                            <i class="bi-question-circle me-1"></i>
+                            จัดการข้อสอบ
+                        </a>
+                    </li>
+                
+                    <li class="nav-item">
+                        <a class="nav-link active" href="system-reports.html">
+                            <i class="bi-graph-up me-1"></i>
+                            รายงานระบบ
+                        </a>
+                    </li>
+                
+                    <li class="nav-item">
+                        <a class="nav-link" href="../settings/system-settings.html">
+                            <i class="bi-gear me-1"></i>
+                            การตั้งค่า
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" id="userDropdown">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <span id="userName">แอดมิน</span>
+                        </a>
+                        <ul class="dropdown-menu" id="userMenu">
+                            <li>
+                                <a class="dropdown-item" href="#" data-action="logout">
+                                    <i class="bi-box-arrow-right me-2"></i>
+                                    ออกจากระบบ
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Main Content -->
+            <main class="col-12 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="bi bi-graph-up me-2"></i>
+                        รายงานระบบ
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportReport()">
+                                <i class="bi bi-download me-1"></i>
+                                ส่งออกรายงาน
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="refreshData()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>
+                                รีเฟรชข้อมูล
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Container -->
+                <div id="alertContainer"></div>
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card users h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-muted text-uppercase mb-1">
+                                            ผู้ใช้ทั้งหมด
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-dark" id="totalUsers">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="bi bi-people-fill fa-2x text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card courses h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-muted text-uppercase mb-1">
+                                            คอร์สทั้งหมด
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-dark" id="totalCourses">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="bi bi-book-fill fa-2x text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card quizzes h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-muted text-uppercase mb-1">
+                                            ข้อสอบทั้งหมด
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-dark" id="totalQuizzes">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="bi bi-question-circle-fill fa-2x text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card enrollments h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-muted text-uppercase mb-1">
+                                            การลงทะเบียน
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-dark" id="totalEnrollments">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="bi bi-person-check-fill fa-2x text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row mb-4">
+                    <div class="col-lg-6">
+                        <div class="card report-card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-pie-chart me-2"></i>
+                                    การกระจายของผู้ใช้
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="userDistributionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-6">
+                        <div class="card report-card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-bar-chart me-2"></i>
+                                    กิจกรรมการใช้งาน
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="activityChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Reports -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card report-card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-table me-2"></i>
+                                    รายงานรายละเอียด
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                                            <i class="bi bi-people me-1"></i>
+                                            ผู้ใช้
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab">
+                                            <i class="bi bi-book me-1"></i>
+                                            คอร์ส
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="quizzes-tab" data-bs-toggle="tab" data-bs-target="#quizzes" type="button" role="tab">
+                                            <i class="bi bi-question-circle me-1"></i>
+                                            ข้อสอบ
+                                        </button>
+                                    </li>
+                                </ul>
+                                
+                                <div class="tab-content mt-3" id="reportTabsContent">
+                                    <div class="tab-pane fade show active" id="users" role="tabpanel">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-hover w-100 dataTable no-footer" id="usersTable" aria-describedby="usersTable_info">
+                                                <thead>
+                                                    <tr>
+                                                        <th>ประเภทผู้ใช้</th>
+                                                        <th>จำนวน</th>
+                                                        <th>เปอร์เซ็นต์</th>
+                                                        <th>ผู้ใช้ที่ใช้งาน</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="usersReportTable">
+                                                    <!-- จะถูกเติมด้วย JavaScript -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tab-pane fade" id="courses" role="tabpanel">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-hover w-100 dataTable no-footer" id="coursesTable" aria-describedby="coursesTable_info">
+                                                <thead>
+                                                    <tr>
+                                                        <th>ชื่อคอร์ส</th>
+                                                        <th>ผู้สอน</th>
+                                                        <th>จำนวนนักเรียน</th>
+                                                        <th>สถานะ</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="coursesReportTable">
+                                                    <!-- จะถูกเติมด้วย JavaScript -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tab-pane fade" id="quizzes" role="tabpanel">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-hover w-100 dataTable no-footer" id="quizzesTable" aria-describedby="quizzesTable_info">
+                                                <thead>
+                                                    <tr>
+                                                        <th>ชื่อข้อสอบ</th>
+                                                        <th>คอร์ส</th>
+                                                        <th>จำนวนคำถาม</th>
+                                                        <th>จำนวนผู้ทำ</th>
+                                                        <th>คะแนนเฉลี่ย</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="quizzesReportTable">
+                                                    <!-- จะถูกเติมด้วย JavaScript -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- JavaScript includes -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script type="module" src="../../assets/js/firebase-config.js"></script>
+    <script type="module" src="../../assets/js/auth.js"></script>
+    <script src="../../assets/js/utils/date-formatter-legacy.js"></script>
+    <script type="module" src="../../assets/js/system-reports.js"></script>
+    <!-- ลบ ResponsiveTablesManager ออก เพราะไม่ต้องการ responsive control -->
+    <!-- <script src="../../assets/js/responsive-tables-manager.js"></script> -->
+</body>
+</html>

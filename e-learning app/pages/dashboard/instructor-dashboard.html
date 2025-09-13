@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard ผู้สอน - E-Learning Platform</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- DataTables Bootstrap 5 -->
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    
+</head>
+<body>
+    <!-- เมนูนำทาง -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="instructor-dashboard.html">
+                <i class="bi bi-mortarboard-fill me-2"></i>
+                E-Learning Platform
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" title="เปิด/ปิดเมนู">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto" id="mainMenu">
+                    <li class="nav-item">
+                        <a class="nav-link" href="instructor-dashboard.html">
+                            <i class="bi-house me-1"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                
+                    <li class="nav-item">
+                        <a class="nav-link" href="../courses/manage-courses.html">
+                            <i class="bi-book me-1"></i>
+                            จัดการคอร์ส
+                        </a>
+                    </li>
+                
+                    <li class="nav-item">
+                        <a class="nav-link" href="../quiz/quiz-create.html">
+                            <i class="bi-plus-circle me-1"></i>
+                            สร้างข้อสอบ
+                        </a>
+                    </li>
+                
+                    <li class="nav-item">
+                        <a class="nav-link" href="../courses/student-results.html">
+                            <i class="bi-graph-up me-1"></i>
+                            ดูผลการเรียน
+                        </a>
+                    </li>
+                
+                    <li class="nav-item">
+                        <a class="nav-link" href="../courses/profile.html">
+                            <i class="bi-person me-1"></i>
+                            โปรไฟล์
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" id="userDropdown">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <span id="userName">ผู้สอน</span>
+                        </a>
+                        <ul class="dropdown-menu" id="userMenu">
+                            <li>
+                                <a class="dropdown-item" href="#" data-action="logout">
+                                    <i class="bi-box-arrow-right me-2"></i>
+                                    ออกจากระบบ
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- เนื้อหาหลัก -->
+            <main class="col-12 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Dashboard ผู้สอน</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Print</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- การ์ดสถิติ -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card text-white bg-primary">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h3 id="totalCourses">0</h3>
+                                        <p class="mb-0">คอร์สที่สร้าง</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-book-fill fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card text-white bg-success">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h3 id="totalStudents">0</h3>
+                                        <p class="mb-0">นักเรียนทั้งหมด</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-people-fill fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card text-white bg-warning">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h3 id="totalQuizzes">0</h3>
+                                        <p class="mb-0">ข้อสอบที่สร้าง</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-question-circle-fill fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card text-white bg-info">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h3 id="averageScore">0%</h3>
+                                        <p class="mb-0">คะแนนเฉลี่ย</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-graph-up fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- นักเรียนที่เรียนล่าสุด -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-people me-2"></i>
+                                    นักเรียนที่เรียนล่าสุด
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table id="studentsTable" class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>นักเรียน</th>
+                                                <th>คอร์ส</th>
+                                                <th>ความคืบหน้า</th>
+                                                <th>คะแนนล่าสุด</th>
+                                                <th>วันที่เรียนล่าสุด</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- ข้อมูลนักเรียนจะถูกอัปเดตโดย JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+
+
+    <!-- JavaScript Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <!-- Firebase -->
+    <script type="module" src="../../assets/js/firebase-config.js"></script>
+    <script type="module" src="../../assets/js/auth.js"></script>
+    <script src="../../assets/js/utils/date-formatter-legacy.js"></script>
+    <script type="module" src="../../assets/js/instructor-dashboard.js"></script>
+</body>
+</html>

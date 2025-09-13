@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการคอร์ส - E-Learning Platform</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <!-- DataTables Responsive -->
+    
+    <!-- Custom CSS -->
+    
+    <!-- Date Formatter Utility -->
+    <script src="../../assets/js/utils/date-formatter-legacy.js"></script>
+    <script src="../../assets/js/date-format-implementation.js"></script>
+</head>
+<body class="bg-light">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../dashboard/admin-dashboard.html">
+                <i class="bi bi-mortarboard-fill me-2"></i>
+                E-Learning Platform
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" title="เปิด/ปิดเมนู">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto" id="mainMenu">
+                    <!-- เมนูจะถูกสร้างโดย JavaScript -->
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" id="userDropdown">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <span id="userName">แอดมิน</span>
+                        </a>
+                        <ul class="dropdown-menu" id="userMenu">
+                            <!-- เมนูผู้ใช้จะถูกสร้างโดย JavaScript -->
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Main Content -->
+            <main class="col-12 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="bi bi-book me-2"></i>
+                        จัดการคอร์ส
+                    </h1>
+                </div>
+
+                <!-- Alert Container -->
+                <div id="alertContainer"></div>
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-primary border-primary">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 id="totalCourses">0</h4>
+                                        <p class="mb-0">คอร์สทั้งหมด</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-book fs-1 text-primary"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-success border-success">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 id="activeCourses">0</h4>
+                                        <p class="mb-0">คอร์สที่เปิดใช้งาน</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-check-circle fs-1 text-success"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-warning border-warning">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 id="totalStudents">0</h4>
+                                        <p class="mb-0">นักเรียนทั้งหมด</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-people fs-1 text-warning"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-info border-info">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 id="totalQuizzes">0</h4>
+                                        <p class="mb-0">ข้อสอบทั้งหมด</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-question-circle fs-1 text-info"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Courses Table -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-list-ul me-2"></i>
+                            รายการคอร์ส
+                        </h5>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#manageCategoriesModal">
+                                <i class="bi bi-tags me-1"></i>จัดการหมวดหมู่
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCourseModal">
+                                <i class="bi bi-plus-circle me-1"></i>เพิ่มคอร์ส
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="coursesTable" class="table table-striped table-hover w-100">
+                                <thead>
+                                    <tr>
+                                        <th>ชื่อคอร์ส</th>
+                                        <th>หมวดหมู่</th>
+                                        <th>ระดับ</th>
+                                        <th>ระยะเวลา</th>
+                                        <th>นักเรียน</th>
+                                        <th>สถานะ</th>
+                                        <th>วันที่สร้าง</th>
+                                        <th>การจัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- ข้อมูลจะถูกโหลดด้วย JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Course Modal -->
+    <div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCourseModalLabel">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        สร้างคอร์สใหม่
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิดหน้าต่างสร้างคอร์สใหม่"></button>
+                </div>
+                <form id="addCourseForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="courseTitle" class="form-label">ชื่อคอร์ส *</label>
+                                    <input type="text" class="form-control" id="courseTitle" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="courseCategory" class="form-label">หมวดหมู่ *</label>
+                                    <select class="form-select" id="courseCategory" required>
+                                        <option value="">เลือกหมวดหมู่</option>
+                                        <option value="programming">การเขียนโปรแกรม</option>
+                                        <option value="database">ฐานข้อมูล</option>
+                                        <option value="web-development">การพัฒนาเว็บ</option>
+                                        <option value="design">การออกแบบ</option>
+                                        <option value="business">ธุรกิจ</option>
+                                        <option value="language">ภาษา</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="courseDescription" class="form-label">คำอธิบาย *</label>
+                            <textarea class="form-control" id="courseDescription" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="courseLevel" class="form-label">ระดับ *</label>
+                                    <select class="form-select" id="courseLevel" required>
+                                        <option value="">เลือกระดับ</option>
+                                        <option value="beginner">เริ่มต้น</option>
+                                        <option value="intermediate">ปานกลาง</option>
+                                        <option value="advanced">ขั้นสูง</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="courseDuration" class="form-label">ระยะเวลาเรียน (ชั่วโมง) *</label>
+                                    <input type="number" class="form-control" id="courseDuration" min="1" max="500" required>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        จำนวนชั่วโมงที่คาดว่าจะใช้ในการเรียนคอร์สให้จบ
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="courseIcon" class="form-label">ไอคอน</label>
+                                                                    <select class="form-select" id="courseIcon">
+                                    <!-- ไอคอนมาตรฐานทั่วไป -->
+                                    <option value="bi-house">🏠 หน้าหลัก</option>
+                                    <option value="bi-person">👤 บุคคล</option>
+                                    <option value="bi-people">👥 กลุ่มคน</option>
+                                    <option value="bi-gear">⚙️ การตั้งค่า</option>
+                                    <option value="bi-tools">🔧 เครื่องมือ</option>
+                                    <option value="bi-wrench">🔧 ซ่อมแซม</option>
+                                    <option value="bi-screwdriver">🔩 ไขควง</option>
+                                    <option value="bi-hammer">🔨 ค้อน</option>
+                                    
+                                    <!-- ไอคอนทั่วไป -->
+                                    <option value="bi-book">📚 หนังสือ</option>
+                                    <option value="bi-mortarboard">🎓 การศึกษา</option>
+                                    <option value="bi-lightbulb">💡 ความคิดสร้างสรรค์</option>
+                                    <option value="bi-cpu">💻 เทคโนโลยี</option>
+                                    
+                                    <!-- ไอคอนธุรกิจและการจัดการ -->
+                                    <option value="bi-briefcase">💼 ธุรกิจ</option>
+                                    <option value="bi-graph-up">📈 การวิเคราะห์</option>
+                                    <option value="bi-calculator">🧮 การคำนวณ</option>
+                                    <option value="bi-cash-stack">💰 การเงิน</option>
+                                    <option value="bi-people">👥 การทำงานเป็นทีม</option>
+                                    <option value="bi-person-check">✅ การตรวจสอบ</option>
+                                    
+                                    <!-- ไอคอนการสื่อสาร -->
+                                    <option value="bi-chat-dots">💬 การสื่อสาร</option>
+                                    <option value="bi-telephone">📞 การติดต่อ</option>
+                                    <option value="bi-envelope">✉️ จดหมาย</option>
+                                    <option value="bi-megaphone">📢 การประชาสัมพันธ์</option>
+                                    
+                                    <!-- ไอคอนการผลิตและคุณภาพ -->
+                                    <option value="bi-shield-check">🛡️ คุณภาพ</option>
+                                    <option value="bi-award">🏆 ความสำเร็จ</option>
+                                    <option value="bi-patch-check">✅ การรับรอง</option>
+                                    <option value="bi-clipboard-check">📋 การตรวจสอบ</option>
+                                    
+                                    <!-- ไอคอนการวิจัยและพัฒนา -->
+                                    <option value="bi-search">🔍 การวิจัย</option>
+                                    <option value="bi-flask">🧪 การทดลอง</option>
+                                    <option value="bi-microscope">🔬 กล้องจุลทรรศน์</option>
+                                    <option value="bi-droplet">💧 ของเหลว</option>
+                                    
+                                    <!-- ไอคอนการขายและการตลาด -->
+                                    <option value="bi-cart">🛒 การขาย</option>
+                                    <option value="bi-tag">🏷️ ราคา</option>
+                                    <option value="bi-star">⭐ ความนิยม</option>
+                                    <option value="bi-heart">❤️ ความพึงพอใจ</option>
+                                    
+                                    <!-- ไอคอนการจัดการข้อมูล -->
+                                    <option value="bi-database">🗄️ ฐานข้อมูล</option>
+                                    <option value="bi-file-earmark-text">📄 เอกสาร</option>
+                                    <option value="bi-folder">📁 โฟลเดอร์</option>
+                                    <option value="bi-archive">📦 การจัดเก็บ</option>
+                                    
+                                    <!-- ไอคอนการฝึกอบรม -->
+                                    <option value="bi-person-workspace">👨‍💼 การทำงาน</option>
+                                    <option value="bi-person-video">📹 การฝึกอบรม</option>
+                                    <option value="bi-camera-video">🎥 วิดีโอ</option>
+                                    <option value="bi-headphones">🎧 การฟัง</option>
+                                    
+                                    <!-- ไอคอนความปลอดภัย -->
+                                    <option value="bi-lock">🔒 ความปลอดภัย</option>
+                                    <option value="bi-shield-lock">🔐 การป้องกัน</option>
+                                    <option value="bi-exclamation-triangle">⚠️ คำเตือน</option>
+                                    <option value="bi-info-circle">ℹ️ ข้อมูล</option>
+                                    
+                                    <!-- ไอคอนเฉพาะสำหรับบริษัทยา -->
+                                    <option value="bi-heart-pulse">💊 ยารักษาโรค</option>
+                                    <option value="bi-plus-circle">➕ การผลิตยา</option>
+                                    <option value="bi-shield-plus">🛡️ การควบคุมคุณภาพ</option>
+                                    <option value="bi-clipboard-data">📊 การทดสอบยา</option>
+                                    <option value="bi-thermometer-half">🌡️ การควบคุมอุณหภูมิ</option>
+                                    <option value="bi-droplet-half">💧 การจัดการของเหลว</option>
+                                    <option value="bi-capsule">💊 แคปซูล</option>
+                                    <option value="bi-pill">💊 ยาเม็ด</option>
+                                    <option value="bi-syringe">💉 เข็มฉีดยา</option>
+                                    <option value="bi-bandage">🩹 พลาสเตอร์</option>
+                                    <option value="bi-hospital">🏥 โรงพยาบาล</option>
+                                    <option value="bi-stethoscope">🩺 เครื่องฟัง</option>
+                                </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="courseColor" class="form-label">สี</label>
+                                    <select class="form-select" id="courseColor">
+                                        <!-- สีพื้นฐาน -->
+                                        <option value="bg-primary">🔵 น้ำเงิน</option>
+                                        <option value="bg-success">🟢 เขียว</option>
+                                        <option value="bg-warning">🟡 เหลือง</option>
+                                        <option value="bg-danger">🔴 แดง</option>
+                                        <option value="bg-info">🔵 ฟ้า</option>
+                                        <option value="bg-secondary">⚫ เทา</option>
+                                        
+                                        <!-- สีที่เหมาะสมสำหรับบริษัทยา -->
+                                        <option value="bg-purple">🟣 ม่วง (ยา)</option>
+                                        <option value="bg-teal">🟢 ฟ้าเขียว (สุขภาพ)</option>
+                                        <option value="bg-pink">🩷 ชมพู (การแพทย์)</option>
+                                        <option value="bg-indigo">🔷 น้ำเงินเข้ม (ความน่าเชื่อถือ)</option>
+                                        <option value="bg-orange">🟠 ส้ม (พลังงาน)</option>
+                                        <option value="bg-cyan">🔵 ฟ้าใส (ความสะอาด)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>
+                            สร้างคอร์ส
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Course Modal -->
+    <div class="modal fade" id="editCourseModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil me-2"></i>
+                        แก้ไขคอร์ส
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิดหน้าต่างแก้ไขคอร์ส"></button>
+                </div>
+                <form id="editCourseForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="editCourseId">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="editCourseTitle" class="form-label">ชื่อคอร์ส *</label>
+                                    <input type="text" class="form-control" id="editCourseTitle" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="editCourseCategory" class="form-label">หมวดหมู่ *</label>
+                                    <select class="form-select" id="editCourseCategory" required>
+                                        <option value="">เลือกหมวดหมู่</option>
+                                        <option value="programming">การเขียนโปรแกรม</option>
+                                        <option value="database">ฐานข้อมูล</option>
+                                        <option value="web-development">การพัฒนาเว็บ</option>
+                                        <option value="design">การออกแบบ</option>
+                                        <option value="business">ธุรกิจ</option>
+                                        <option value="language">ภาษา</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="editCourseDescription" class="form-label">คำอธิบาย *</label>
+                            <textarea class="form-control" id="editCourseDescription" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="editCourseLevel" class="form-label">ระดับ *</label>
+                                    <select class="form-select" id="editCourseLevel" required>
+                                        <option value="">เลือกระดับ</option>
+                                        <option value="beginner">เริ่มต้น</option>
+                                        <option value="intermediate">ปานกลาง</option>
+                                        <option value="advanced">ขั้นสูง</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="editCourseDuration" class="form-label">ระยะเวลาเรียน (ชั่วโมง) *</label>
+                                    <input type="number" class="form-control" id="editCourseDuration" min="1" max="500" required>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        จำนวนชั่วโมงที่คาดว่าจะใช้ในการเรียนคอร์สให้จบ
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editCourseIcon" class="form-label">ไอคอน</label>
+                                                                    <select class="form-select" id="editCourseIcon">
+                                    <!-- ไอคอนทั่วไป -->
+                                    <option value="bi-book">📚 หนังสือ</option>
+                                    <option value="bi-mortarboard">🎓 การศึกษา</option>
+                                    <option value="bi-lightbulb">💡 ความคิดสร้างสรรค์</option>
+                                    <option value="bi-gear">⚙️ เทคนิค</option>
+                                    <option value="bi-tools">🔧 เครื่องมือ</option>
+                                    <option value="bi-cpu">💻 เทคโนโลยี</option>
+                                    
+                                    <!-- ไอคอนธุรกิจและการจัดการ -->
+                                    <option value="bi-briefcase">💼 ธุรกิจ</option>
+                                    <option value="bi-graph-up">📈 การวิเคราะห์</option>
+                                    <option value="bi-calculator">🧮 การคำนวณ</option>
+                                    <option value="bi-cash-stack">💰 การเงิน</option>
+                                    <option value="bi-people">👥 การทำงานเป็นทีม</option>
+                                    <option value="bi-person-check">✅ การตรวจสอบ</option>
+                                    
+                                    <!-- ไอคอนการสื่อสาร -->
+                                    <option value="bi-chat-dots">💬 การสื่อสาร</option>
+                                    <option value="bi-telephone">📞 การติดต่อ</option>
+                                    <option value="bi-envelope">✉️ จดหมาย</option>
+                                    <option value="bi-megaphone">📢 การประชาสัมพันธ์</option>
+                                    
+                                    <!-- ไอคอนการผลิตและคุณภาพ -->
+                                    <option value="bi-shield-check">🛡️ คุณภาพ</option>
+                                    <option value="bi-award">🏆 ความสำเร็จ</option>
+                                    <option value="bi-patch-check">✅ การรับรอง</option>
+                                    <option value="bi-clipboard-check">📋 การตรวจสอบ</option>
+                                    
+                                    <!-- ไอคอนการวิจัยและพัฒนา -->
+                                    <option value="bi-search">🔍 การวิจัย</option>
+                                    <option value="bi-flask">🧪 การทดลอง</option>
+                                    <option value="bi-microscope">🔬 กล้องจุลทรรศน์</option>
+                                    <option value="bi-droplet">💧 ของเหลว</option>
+                                    
+                                    <!-- ไอคอนการขายและการตลาด -->
+                                    <option value="bi-cart">🛒 การขาย</option>
+                                    <option value="bi-tag">🏷️ ราคา</option>
+                                    <option value="bi-star">⭐ ความนิยม</option>
+                                    <option value="bi-heart">❤️ ความพึงพอใจ</option>
+                                    
+                                    <!-- ไอคอนการจัดการข้อมูล -->
+                                    <option value="bi-database">🗄️ ฐานข้อมูล</option>
+                                    <option value="bi-file-earmark-text">📄 เอกสาร</option>
+                                    <option value="bi-folder">📁 โฟลเดอร์</option>
+                                    <option value="bi-archive">📦 การจัดเก็บ</option>
+                                    
+                                    <!-- ไอคอนการฝึกอบรม -->
+                                    <option value="bi-person-workspace">👨‍💼 การทำงาน</option>
+                                    <option value="bi-person-video">📹 การฝึกอบรม</option>
+                                    <option value="bi-camera-video">🎥 วิดีโอ</option>
+                                    <option value="bi-headphones">🎧 การฟัง</option>
+                                    
+                                    <!-- ไอคอนความปลอดภัย -->
+                                    <option value="bi-lock">🔒 ความปลอดภัย</option>
+                                    <option value="bi-shield-lock">🔐 การป้องกัน</option>
+                                    <option value="bi-exclamation-triangle">⚠️ คำเตือน</option>
+                                    <option value="bi-info-circle">ℹ️ ข้อมูล</option>
+                                    
+                                    <!-- ไอคอนเฉพาะสำหรับบริษัทยา -->
+                                    <option value="bi-heart-pulse">💊 ยารักษาโรค</option>
+                                    <option value="bi-plus-circle">➕ การผลิตยา</option>
+                                    <option value="bi-shield-plus">🛡️ การควบคุมคุณภาพ</option>
+                                    <option value="bi-clipboard-data">📊 การทดสอบยา</option>
+                                    <option value="bi-thermometer-half">🌡️ การควบคุมอุณหภูมิ</option>
+                                    <option value="bi-droplet-half">💧 การจัดการของเหลว</option>
+                                    <option value="bi-capsule">💊 แคปซูล</option>
+                                    <option value="bi-pill">💊 ยาเม็ด</option>
+                                    <option value="bi-syringe">💉 เข็มฉีดยา</option>
+                                    <option value="bi-bandage">🩹 พลาสเตอร์</option>
+                                    <option value="bi-hospital">🏥 โรงพยาบาล</option>
+                                    <option value="bi-stethoscope">🩺 เครื่องฟัง</option>
+                                </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editCourseColor" class="form-label">สี</label>
+                                    <select class="form-select" id="editCourseColor">
+                                        <!-- สีพื้นฐาน -->
+                                        <option value="bg-primary">🔵 น้ำเงิน</option>
+                                        <option value="bg-success">🟢 เขียว</option>
+                                        <option value="bg-warning">🟡 เหลือง</option>
+                                        <option value="bg-danger">🔴 แดง</option>
+                                        <option value="bg-info">🔵 ฟ้า</option>
+                                        <option value="bg-secondary">⚫ เทา</option>
+                                        
+                                        <!-- สีที่เหมาะสมสำหรับบริษัทยา -->
+                                        <option value="bg-purple">🟣 ม่วง (ยา)</option>
+                                        <option value="bg-teal">🟢 ฟ้าเขียว (สุขภาพ)</option>
+                                        <option value="bg-pink">🩷 ชมพู (การแพทย์)</option>
+                                        <option value="bg-indigo">🔷 น้ำเงินเข้ม (ความน่าเชื่อถือ)</option>
+                                        <option value="bg-orange">🟠 ส้ม (พลังงาน)</option>
+                                        <option value="bg-cyan">🔵 ฟ้าใส (ความสะอาด)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editCourseActive">
+                                <label class="form-check-label" for="editCourseActive">
+                                    เปิดใช้งานคอร์ส
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>
+                            บันทึกการเปลี่ยนแปลง
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Categories Modal -->
+    <div class="modal fade" id="manageCategoriesModal" tabindex="-1" aria-labelledby="manageCategoriesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="manageCategoriesModalLabel">
+                        <i class="bi bi-tags me-2"></i>
+                        จัดการหมวดหมู่คอร์ส
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิดหน้าต่างจัดการหมวดหมู่"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- ฟอร์มเพิ่มหมวดหมู่ใหม่ -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                เพิ่มหมวดหมู่ใหม่
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <form id="addCategoryForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="newCategoryName" class="form-label">ชื่อหมวดหมู่ *</label>
+                                        <input type="text" class="form-control" id="newCategoryName" placeholder="เช่น การเขียนโปรแกรม" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="newCategoryCode" class="form-label">รหัสหมวดหมู่ *</label>
+                                        <input type="text" class="form-control" id="newCategoryCode" placeholder="เช่น programming" required>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- รายการหมวดหมู่ -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-list me-2"></i>
+                                รายการหมวดหมู่
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="categoriesTable">
+                                    <thead>
+                                        <tr>
+                                            <th>ชื่อหมวดหมู่</th>
+                                            <th>รหัส</th>
+                                            <th>จำนวนคอร์ส</th>
+                                            <th>วันที่สร้าง</th>
+                                            <th>การจัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- ข้อมูลหมวดหมู่จะถูกโหลดที่นี่ -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" form="addCategoryForm" class="btn btn-primary text-white">
+                        <i class="bi bi-plus text-white me-1"></i>เพิ่มหมวดหมู่
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Category Modal -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCategoryModalLabel">
+                        <i class="bi bi-pencil me-2"></i>
+                        แก้ไขหมวดหมู่
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิดหน้าต่างแก้ไขหมวดหมู่"></button>
+                </div>
+                <form id="editCategoryForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="editCategoryId">
+                        <div class="mb-3">
+                            <label for="editCategoryName" class="form-label">ชื่อหมวดหมู่ *</label>
+                            <input type="text" class="form-control" id="editCategoryName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editCategoryCode" class="form-label">รหัสหมวดหมู่ *</label>
+                            <input type="text" class="form-control" id="editCategoryCode" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>บันทึก
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Category Modal -->
+    <div class="modal fade" id="deleteCategoryModal" tabindex="-1" aria-labelledby="deleteCategoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteCategoryModalLabel">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        ยืนยันการลบหมวดหมู่
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>คำเตือน:</strong> การลบหมวดหมู่จะส่งผลต่อคอร์สที่ใช้หมวดหมู่นี้
+                    </div>
+                    <p>คุณแน่ใจหรือไม่ที่จะลบหมวดหมู่ "<span id="deleteCategoryName"></span>"?</p>
+                    <p class="text-muted small">คอร์สที่ใช้หมวดหมู่นี้จะถูกเปลี่ยนเป็น "ไม่ระบุหมวดหมู่"</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteCategoryBtn">
+                        <i class="bi bi-trash me-1"></i>ลบหมวดหมู่
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Detail Modal -->
+    <div class="modal fade" id="courseDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-book me-2"></i>
+                        รายละเอียดคอร์ส
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิดหน้าต่างรายละเอียดคอร์ส"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Loading Spinner -->
+                    <div id="courseDetailLoading" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">กำลังโหลด...</span>
+                        </div>
+                        <p class="mt-2">กำลังโหลดข้อมูลคอร์ส...</p>
+                    </div>
+
+                    <!-- Course Details Content -->
+                    <div id="courseDetailContent" class="course-detail-content">
+                        <!-- Course Header -->
+                        <div class="row mb-4">
+                            <div class="col-md-3 text-center">
+                                <div id="modalCourseIcon" class="bg-primary rounded p-3 mb-3">
+                                    <i class="bi bi-book text-white fs-1"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <h4 id="modalCourseTitle" class="mb-2">ชื่อคอร์ส</h4>
+                                <p id="modalCourseDescription" class="text-muted mb-3">คำอธิบายคอร์ส</p>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <small class="text-muted">หมวดหมู่</small>
+                                        <p id="modalCourseCategory" class="mb-0"><span class="badge bg-secondary">ไม่ระบุ</span></p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small class="text-muted">ระดับ</small>
+                                        <p id="modalCourseLevel" class="mb-0"><span class="badge bg-info">ไม่ระบุ</span></p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small class="text-muted">ระยะเวลา</small>
+                                        <p id="modalCourseDuration" class="mb-0">0 ชั่วโมง</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small class="text-muted">สถานะ</small>
+                                        <p id="modalCourseStatus" class="mb-0"><span class="badge bg-success">เปิดใช้งาน</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Course Statistics -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="card bg-white border-primary">
+                                    <div class="card-body text-center">
+                                        <h4 id="modalStudentCount" class="text-primary">0</h4>
+                                        <p class="mb-0 text-dark">นักเรียน</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-white border-success">
+                                    <div class="card-body text-center">
+                                        <h4 id="modalQuizCount" class="text-success">0</h4>
+                                        <p class="mb-0 text-dark">ข้อสอบ</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-white border-info">
+                                    <div class="card-body text-center">
+                                        <h4 id="modalCompletionRate" class="text-info">0%</h4>
+                                        <p class="mb-0 text-dark">อัตราการเรียนจบ</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Course Information -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    ข้อมูลเพิ่มเติม
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>ผู้สอน:</strong> <span id="modalInstructorName">ไม่ระบุ</span></p>
+                                        <p><strong>วันที่สร้าง:</strong> <span id="modalCreatedAt">ไม่ระบุ</span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>วันที่อัปเดตล่าสุด:</strong> <span id="modalUpdatedAt">ไม่ระบุ</span></p>
+                                        <p><strong>รหัสคอร์ส:</strong> <code id="modalCourseId">ไม่ระบุ</code></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="courseDetailError" class="text-center py-4 course-detail-error">
+                        <div class="alert alert-danger" role="alert">
+                            <i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i>
+                            <h6>ไม่พบข้อมูลคอร์ส</h6>
+                            <p class="mb-0">ไม่สามารถโหลดข้อมูลคอร์สได้</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteCourseModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        ยืนยันการลบคอร์ส
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิดหน้าต่างยืนยันการลบคอร์ส"></button>
+                </div>
+                <div class="modal-body">
+                    <p>คุณแน่ใจหรือไม่ที่จะลบคอร์ส <strong id="deleteCourseName"></strong>?</p>
+                    <p class="text-danger small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        การดำเนินการนี้ไม่สามารถยกเลิกได้ และจะลบข้อมูลที่เกี่ยวข้องทั้งหมด
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="bi bi-trash me-2"></i>
+                        ลบคอร์ส
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    <!-- Firebase -->
+    <script type="module" src="../../assets/js/firebase-config.js"></script>
+    <script type="module" src="../../assets/js/auth.js"></script>
+    <script type="module" src="../../assets/js/manage-courses.js"></script>
+    <!-- ลบ ResponsiveTablesManager ออก เพราะไม่ต้องการ responsive control -->
+    <!-- <script src="../../assets/js/responsive-tables-manager.js"></script> -->
+    
+    <script type="module">
+        // Import modules
+        import { protectPage, displayUserInfo, createUserMenu, createMainMenu, logoutUser, checkSessionExpiry } from '../../assets/js/auth.js';
+        
+        try {
+            // ตรวจสอบสิทธิ์การเข้าถึงหน้า (เฉพาะแอดมินและผู้สอน)
+            protectPage(['admin', 'instructor']);
+            
+            // ตรวจสอบ session expiry
+            checkSessionExpiry();
+            
+            // แสดงข้อมูลผู้ใช้
+            displayUserInfo();
+            
+            // สร้างเมนูหลัก
+            createMainMenu();
+            
+            // สร้างเมนูผู้ใช้
+            createUserMenu();
+            
+        } catch (error) {
+            console.error('เกิดข้อผิดพลาดในการโหลดโมดูล:', error);
+        }
+        
+        // จัดการการออกจากระบบ
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#logoutBtn') || e.target.closest('[data-action="logout"]')) {
+                e.preventDefault();
+                logoutUser().then(() => {
+                    window.location.href = '../auth/login.html';
+                });
+            }
+        });
+        
+        // ตรวจสอบ session ทุก 5 นาที
+        setInterval(() => {
+            checkSessionExpiry();
+        }, 5 * 60 * 1000);
+    </script>
+</body>
+</html>

@@ -6,14 +6,15 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.0/firebase
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
 // Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyAyUy74NcG4Ju1SS3sYZL1dGPsUAEaFmkY",
-  authDomain: "debt-app-9b26b.firebaseapp.com",
-  projectId: "debt-app-9b26b",
-  storageBucket: "debt-app-9b26b.firebasestorage.app",
-  messagingSenderId: "491646343164",
-  appId: "1:491646343164:web:9b17affd519d3be10c8479",
-  measurementId: "G-TS5W91PT5Q"
+  apiKey: "AIzaSyCAXkcORCpAF37cedFdgY1haZYgp9sx7rU",
+  authDomain: "e-learning-app2-127d0.firebaseapp.com",
+  projectId: "e-learning-app2-127d0",
+  storageBucket: "e-learning-app2-127d0.firebasestorage.app",
+  messagingSenderId: "590470466817",
+  appId: "1:590470466817:web:09b7f6abf0e5aefbdb1f00",
+  measurementId: "G-0V260HBBV6"
 };
 
 // Initialize Firebase

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายละเอียดคอร์ส - E-Learning Platform</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    
+</head>
+<body class="bg-light">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../dashboard/admin-dashboard.html">
+                <i class="bi bi-mortarboard-fill me-2"></i>
+                E-Learning Platform
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" title="เปิด/ปิดเมนู">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto" id="mainMenu">
+                    <!-- เมนูจะถูกสร้างโดย JavaScript -->
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" id="userDropdown">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <span id="userName">แอดมิน</span>
+                        </a>
+                        <ul class="dropdown-menu" id="userMenu">
+                            <!-- เมนูผู้ใช้จะถูกสร้างโดย JavaScript -->
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Main Content -->
+            <main class="col-12 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="bi bi-book me-2"></i>
+                        รายละเอียดคอร์ส
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <a href="manage-courses.html" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>
+                                กลับไปจัดการคอร์ส
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Container -->
+                <div id="alertContainer"></div>
+
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="text-center py-5 loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">กำลังโหลด...</span>
+                    </div>
+                    <p class="mt-2">กำลังโหลดข้อมูลคอร์ส...</p>
+                </div>
+
+                <!-- Course Details -->
+                <div id="courseDetails" class="course-details">
+                    <div class="row">
+                        <!-- Course Header -->
+                        <div class="col-12 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2 text-center">
+                                            <div id="courseIcon" class="bg-primary rounded p-3 mb-3">
+                                                <i class="bi bi-book text-white fs-1"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-10">
+                                            <h2 id="courseTitle" class="mb-2">ชื่อคอร์ส</h2>
+                                            <p id="courseDescription" class="text-muted mb-3">คำอธิบายคอร์ส</p>
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <small class="text-muted">หมวดหมู่</small>
+                                                    <p id="courseCategory" class="mb-0"><span class="badge bg-secondary">ไม่ระบุ</span></p>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <small class="text-muted">ระดับ</small>
+                                                    <p id="courseLevel" class="mb-0"><span class="badge bg-info">ไม่ระบุ</span></p>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <small class="text-muted">ระยะเวลา</small>
+                                                    <p id="courseDuration" class="mb-0">0 ชั่วโมง</p>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <small class="text-muted">สถานะ</small>
+                                                    <p id="courseStatus" class="mb-0"><span class="badge bg-success">เปิดใช้งาน</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Course Statistics -->
+                        <div class="col-md-4 mb-4">
+                            <div class="card text-white bg-primary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 id="studentCount">0</h4>
+                                            <p class="mb-0">นักเรียน</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-people fs-1"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-4">
+                            <div class="card text-white bg-success">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 id="quizCount">0</h4>
+                                            <p class="mb-0">ข้อสอบ</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-question-circle fs-1"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-4">
+                            <div class="card text-white bg-info">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 id="completionRate">0%</h4>
+                                            <p class="mb-0">อัตราการเรียนจบ</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-graph-up fs-1"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Course Information -->
+                        <div class="col-md-8 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        ข้อมูลคอร์ส
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>ผู้สอน:</strong> <span id="instructorName">ไม่ระบุ</span></p>
+                                            <p><strong>วันที่สร้าง:</strong> <span id="createdAt">ไม่ระบุ</span></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>วันที่อัปเดตล่าสุด:</strong> <span id="updatedAt">ไม่ระบุ</span></p>
+                                            <p><strong>รหัสคอร์ส:</strong> <code id="courseId">ไม่ระบุ</code></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Course Actions -->
+                        <div class="col-md-4 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-gear me-2"></i>
+                                        การจัดการ
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-primary" onclick="editCourseFromDetail()">
+                                            <i class="bi bi-pencil me-1"></i>
+                                            แก้ไขคอร์ส
+                                        </button>
+                                        <button type="button" class="btn btn-info" onclick="manageQuizzes()">
+                                            <i class="bi bi-question-circle me-1"></i>
+                                            จัดการข้อสอบ
+                                        </button>
+                                        <button type="button" class="btn btn-warning" onclick="toggleCourseStatus()">
+                                            <i class="bi bi-toggle-on me-1"></i>
+                                            เปลี่ยนสถานะ
+                                        </button>
+                                        <button type="button" class="btn btn-danger" onclick="deleteCourseFromDetail()">
+                                            <i class="bi bi-trash me-1"></i>
+                                            ลบคอร์ส
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="text-center py-5 error-message">
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i>
+                        <h4>ไม่พบข้อมูลคอร์ส</h4>
+                        <p>ไม่สามารถโหลดข้อมูลคอร์สได้ กรุณาตรวจสอบรหัสคอร์สหรือลองใหม่อีกครั้ง</p>
+                        <a href="manage-courses.html" class="btn btn-primary">
+                            <i class="bi bi-arrow-left me-1"></i>
+                            กลับไปจัดการคอร์ส
+                        </a>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Firebase -->
+    <script type="module" src="../../assets/js/firebase-config.js"></script>
+    <!-- Auth -->
+    <script type="module" src="../../assets/js/auth.js"></script>
+    <script src="../../assets/js/utils/date-formatter-legacy.js"></script>
+    <!-- Course Detail -->
+    <script type="module" src="../../assets/js/course-detail.js"></script>
+</body>
+</html>

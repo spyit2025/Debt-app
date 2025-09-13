@@ -1,0 +1,100 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ฟังก์ชันตรวจสอบว่าผู้ใช้เข้าสู่ระบบแล้ว
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // ฟังก์ชันตรวจสอบว่าผู้ใช้เป็นเจ้าของข้อมูล
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // ฟังก์ชันตรวจสอบประเภทผู้ใช้
+    function hasUserType(userType) {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == userType;
+    }
+    
+    // ฟังก์ชันตรวจสอบว่าเป็นแอดมิน
+    function isAdmin() {
+      return hasUserType('admin');
+    }
+    
+    // ฟังก์ชันตรวจสอบว่าเป็นผู้สอน
+    function isInstructor() {
+      return hasUserType('instructor') || isAdmin();
+    }
+    
+    // ฟังก์ชันตรวจสอบว่าเป็นนักเรียน
+    function isStudent() {
+      return hasUserType('student') || isInstructor();
+    }
+
+    // กฎสำหรับคอลเลกชัน users
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // กฎสำหรับคอลเลกชัน courses
+    match /courses/{courseId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isInstructor();
+    }
+
+    // กฎสำหรับคอลเลกชัน enrollments
+    match /enrollments/{enrollmentId} {
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isInstructor() || 
+        isAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isInstructor() || 
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // กฎสำหรับคอลเลกชัน quizzes
+    match /quizzes/{quizId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isInstructor();
+    }
+
+    // กฎสำหรับคอลเลกชัน quiz_results
+    match /quiz_results/{resultId} {
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isInstructor() || 
+        isAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isInstructor() || 
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // กฎสำหรับคอลเลกชัน systemSettings (อนุญาตให้อ่านได้โดยไม่ต้องเข้าสู่ระบบ)
+    match /systemSettings/{document} {
+      allow read: if true; // อนุญาตให้อ่านได้ทุกคน
+      allow write: if isAdmin(); // เฉพาะแอดมินเท่านั้นที่เขียนได้
+    }
+
+    // กฎสำหรับคอลเลกชันอื่นๆ
+    match /{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "e-learning-app",
+  "version": "1.0.0",
+  "description": "E-Learning Platform with Firebase",
+  "main": "index.html",
+  "scripts": {
+    "start": "live-server",
+    "build": "echo 'No build process needed for static site'",
+    "dev": "live-server --port=3000"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "keywords": [
+    "e-learning",
+    "firebase",
+    "education",
+    "online-learning"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
