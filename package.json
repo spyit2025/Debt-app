@@ -14,7 +14,7 @@
   "keywords": ["debt", "management", "web", "app", "firebase"],
   "author": "",
   "license": "MIT",
-  "homepage": "https://spyit2025.github.io/Debt-app",
+  "homepage": "https://debt-app.spyit2025.github.io",
   "devDependencies": {
     "http-server": "^14.1.1"
   }

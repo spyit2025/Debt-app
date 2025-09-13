@@ -8,7 +8,7 @@
     <!-- Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdn.datatables.net https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdn.datatables.net https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.googletagmanager.com;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;
         style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;
         font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com;
@@ -165,8 +165,7 @@
 
     <!-- Firebase Configuration -->
     <script type="module" src="../../js/firebase-config.js?v=20250913143643"></script>
-    <script src="../../js/firebase-utils.js?v=4.0.0"></script>
-    <script src="../../js/auth.js?v=4.0.0"></script>
+    <script type="module" src="../../js/auth.js?v=20250913143643"></script>
     
     <script>
         // Dashboard Router Script
