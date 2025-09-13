@@ -18,6 +18,87 @@ import {
     addDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
 
+// ฟังก์ชันเข้าสู่ระบบโดยไม่ระบุ userType (ตรวจสอบจาก Firebase)
+export async function loginUserWithoutUserType(email, password, rememberMe = false) {
+    try {
+        // การยืนยันตัวตน Firebase จริง
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        // ดึงข้อมูลผู้ใช้จาก Firestore
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const userType = userData.userType;
+            
+            // อัปเดตเวลาล็อกอินล่าสุด
+            await updateDoc(doc(db, 'users', user.uid), {
+                lastLoginAt: serverTimestamp(),
+                loginCount: (userData.loginCount || 0) + 1
+            });
+            
+            const userInfo = {
+                uid: user.uid,
+                email: user.email,
+                userType: userType,
+                name: userData.name,
+                profile: userData.profile || {},
+                lastLoginAt: userData.lastLoginAt,
+                loginCount: userData.loginCount || 0
+            };
+            
+            // บันทึกข้อมูลผู้ใช้ใน localStorage
+            if (rememberMe) {
+                localStorage.setItem('userId', user.uid);
+                localStorage.setItem('userEmail', user.email);
+                localStorage.setItem('userType', userType);
+                localStorage.setItem('userName', userData.name);
+                localStorage.setItem('rememberMe', 'true');
+            } else {
+                sessionStorage.setItem('userId', user.uid);
+                sessionStorage.setItem('userEmail', user.email);
+                sessionStorage.setItem('userType', userType);
+                sessionStorage.setItem('userName', userData.name);
+                localStorage.removeItem('rememberMe');
+            }
+            
+            return {
+                success: true,
+                user: userInfo,
+                userType: userType
+            };
+        } else {
+            throw new Error('ไม่พบข้อมูลผู้ใช้ในระบบ');
+        }
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        
+        // แปลง Firebase error เป็นข้อความภาษาไทย
+        let errorMessage = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
+        
+        if (error.code === 'auth/user-not-found') {
+            errorMessage = 'ไม่พบผู้ใช้ในระบบ';
+        } else if (error.code === 'auth/wrong-password') {
+            errorMessage = 'รหัสผ่านไม่ถูกต้อง';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'รูปแบบอีเมลไม่ถูกต้อง';
+        } else if (error.code === 'auth/user-disabled') {
+            errorMessage = 'บัญชีผู้ใช้ถูกปิดใช้งาน';
+        } else if (error.code === 'auth/too-many-requests') {
+            errorMessage = 'พยายามเข้าสู่ระบบมากเกินไป กรุณารอสักครู่';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        return {
+            success: false,
+            error: errorMessage
+        };
+    }
+}
+
 // ฟังก์ชันเข้าสู่ระบบ
 export async function loginUser(email, password, userType, rememberMe = false) {
     try {
@@ -385,28 +466,57 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (loginForm) {
         // ตรวจสอบสถานะ "จดจำฉัน" จาก localStorage
+        const savedEmail = localStorage.getItem('userEmail');
         const rememberMe = localStorage.getItem('rememberMe') === 'true';
         const rememberMeCheckbox = document.getElementById('rememberMe');
         if (rememberMeCheckbox) {
             rememberMeCheckbox.checked = rememberMe;
         }
         
+        // Load saved email if available
+        const emailInput = document.getElementById('email');
+        if (emailInput && savedEmail) {
+            emailInput.value = savedEmail;
+        }
+        
         loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const userType = document.getElementById('userType').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
+            const emailElement = document.getElementById('email');
+            const passwordElement = document.getElementById('password');
+            const rememberMeElement = document.getElementById('rememberMe');
+            
+            // ตรวจสอบว่า element มีอยู่จริงหรือไม่
+            if (!emailElement || !passwordElement) {
+                showAlert('ไม่พบฟอร์มเข้าสู่ระบบ', 'danger');
+                return;
+            }
+            
+            const email = emailElement.value;
+            const password = passwordElement.value;
+            const rememberMe = rememberMeElement ? rememberMeElement.checked : false;
+            
+            // ตรวจสอบว่าข้อมูลครบถ้วนหรือไม่
+            if (!email || !password) {
+                showAlert('กรุณากรอกข้อมูลให้ครบถ้วน', 'warning');
+                return;
+            }
             
             // แสดงสถานะกำลังโหลด
             const submitBtn = loginForm.querySelector('button[type="submit"]');
+            if (!submitBtn) {
+                showAlert('ไม่พบปุ่มส่งข้อมูล', 'danger');
+                return;
+            }
+            
             const originalText = submitBtn.innerHTML;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>กำลังเข้าสู่ระบบ...';
             submitBtn.disabled = true;
             
             try {
-                const result = await loginUser(email, password, userType, rememberMe);
+                // ลองเข้าสู่ระบบโดยไม่ระบุ userType ก่อน
+                // ระบบจะตรวจสอบ userType จากข้อมูลใน Firebase
+                const result = await loginUserWithoutUserType(email, password, rememberMe);
                 
                 if (result.success) {
                     // แสดงข้อความสำเร็จ
@@ -418,7 +528,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // เปลี่ยนเส้นทางหลังจากหน่วงเวลา
                     setTimeout(() => {
                         if (!window.isRedirecting) {
-                            redirectBasedOnUserType(userType);
+                            redirectBasedOnUserType(result.userType);
                         }
                     }, 2500);
                     
@@ -430,8 +540,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 showAlert('เกิดข้อผิดพลาดในการเข้าสู่ระบบ', 'danger');
             } finally {
                 // รีเซ็ตสถานะปุ่ม
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
+                if (submitBtn) {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
             }
         });
     }
