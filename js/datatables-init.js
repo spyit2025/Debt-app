@@ -15,6 +15,15 @@ class DataTablesInit {
             return;
         }
 
+        // Check if DataTable is already initialized by jQuery
+        if (typeof jQuery !== 'undefined' && jQuery.fn.DataTable && jQuery.fn.DataTable.isDataTable(`#${tableId}`)) {
+            if (window.logger) {
+                window.logger.warn(`DataTable ${tableId} already initialized by jQuery`);
+            }
+            this.initializedTables.add(tableId);
+            return;
+        }
+
         // Check if jQuery is available
         if (typeof jQuery === 'undefined') {
             if (window.logger) {

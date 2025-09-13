@@ -177,7 +177,7 @@ class AlertUtils {
         return new Promise((resolve) => {
             const modalId = 'confirmModal_' + Date.now();
             const modalHtml = `
-                <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true">
+                <div class="modal fade" id="${modalId}" tabindex="-1" role="dialog">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -199,6 +199,20 @@ class AlertUtils {
             // Add modal to body
             document.body.insertAdjacentHTML('beforeend', modalHtml);
             const modal = new bootstrap.Modal(document.getElementById(modalId));
+            const modalElement = document.getElementById(modalId);
+
+            // Setup ARIA handling
+            modalElement.addEventListener('shown.bs.modal', function() {
+                modalElement.setAttribute('aria-hidden', 'false');
+                const firstFocusable = modalElement.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (firstFocusable) {
+                    firstFocusable.focus();
+                }
+            });
+            
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                modalElement.setAttribute('aria-hidden', 'true');
+            });
 
             // Handle confirm button
             document.getElementById('confirmBtn').addEventListener('click', () => {

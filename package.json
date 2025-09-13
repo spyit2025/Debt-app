@@ -9,7 +9,8 @@
     "test": "echo \"No tests specified\" && exit 0",
     "build": "echo \"Building for production...\"",
     "deploy": "echo \"Deploy to GitHub Pages\"",
-    "serve": "http-server -p 3000 -o"
+    "serve": "http-server -p 3000 -o",
+    "deploy-indexes": "node deploy-firestore-indexes.js"
   },
   "keywords": ["debt", "management", "web", "app", "firebase"],
   "author": "",

@@ -172,47 +172,6 @@ function handleSwipeGestures() {
 }
 
 // Function to confirm logout
-function confirmLogout() {
-    if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
-        // Close mobile menu if open
-        closeMobileMenu();
-        
-        // Show success message before logout
-        if (typeof showToast === 'function') {
-            showToast('กำลังออกจากระบบ...', 'info');
-        }
-        
-        // Call Firebase logout function
-        if (window.authModule && typeof window.authModule.signOut === 'function') {
-            window.authModule.signOut()
-                .then(() => {
-                    // Clear all localStorage
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    
-                    // Redirect to login page
-                    setTimeout(() => {
-                        window.location.href = './index.html';
-                    }, 500);
-                })
-                .catch((error) => {
-                    console.error('Logout error:', error);
-                    // Still redirect even if logout fails
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.href = './index.html';
-                });
-        } else {
-            // Fallback if authModule is not available
-            localStorage.clear();
-            sessionStorage.clear();
-            setTimeout(() => {
-                window.location.href = '../../index.html';
-            }, 500);
-        }
-    }
-}
-
 // Utility function to update active navigation based on current section
 function updateActiveNavigation() {
     const currentHash = window.location.hash || '#dashboard';
@@ -453,7 +412,6 @@ window.ResponsiveNav = {
     resetMobileMenuState,
     safeCloseMobileMenu,
     updateActiveNavigation,
-    confirmLogout,
     syncUserName,
     handleNavigationWithSmoothScroll
 };

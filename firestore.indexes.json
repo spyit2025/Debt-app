@@ -70,6 +70,20 @@
         }
       ]
     },
+    {
+      "collectionGroup": "payments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "creditorId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "paymentDate",
+          "order": "DESCENDING"
+        }
+      ]
+    }
     // Removed - notifications not used
   ],
   "fieldOverrides": []

@@ -50,16 +50,10 @@ export async function loginUserWithoutUserType(email, password, rememberMe = fal
             
             // บันทึกข้อมูลผู้ใช้ใน localStorage
             if (rememberMe) {
-                localStorage.setItem('userId', user.uid);
-                localStorage.setItem('userEmail', user.email);
-                localStorage.setItem('userType', userType);
-                localStorage.setItem('userName', userData.name);
+                localStorage.setItem('user', JSON.stringify(userInfo));
                 localStorage.setItem('rememberMe', 'true');
             } else {
-                sessionStorage.setItem('userId', user.uid);
-                sessionStorage.setItem('userEmail', user.email);
-                sessionStorage.setItem('userType', userType);
-                sessionStorage.setItem('userName', userData.name);
+                sessionStorage.setItem('user', JSON.stringify(userInfo));
                 localStorage.removeItem('rememberMe');
             }
             
@@ -217,6 +211,16 @@ export async function logoutUser() {
         localStorage.removeItem('user');
         localStorage.removeItem('rememberMe');
         
+        // ลบข้อมูลเก่าที่อาจเหลืออยู่
+        sessionStorage.removeItem('userId');
+        sessionStorage.removeItem('userEmail');
+        sessionStorage.removeItem('userType');
+        sessionStorage.removeItem('userName');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userType');
+        localStorage.removeItem('userName');
+        
         return { success: true };
     } catch (error) {
         console.error('Logout error:', error);
@@ -344,7 +348,7 @@ export function protectPage(requiredUserType) {
             // ถ้าไม่มีผู้ใช้ ให้ไปหน้า login
             if (!window.isRedirecting) {
                 setTimeout(() => {
-                    window.location.href = './index.html';
+                    window.location.href = '../../index.html';
                 }, 1000);
             }
             return;

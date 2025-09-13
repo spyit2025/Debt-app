@@ -30,9 +30,6 @@ export { app, analytics, auth, db, storage };
 export { auth as firebaseAuth };
 export { db as firestore };
 
-// Debug: Log exports to verify they're available
-console.log('Firebase exports:', { app, analytics, auth, db, storage });
-
 // เพิ่มการจัดการ Firebase errors
 try {
     // ตั้งค่า timeout สำหรับ Firestore operations
@@ -47,7 +44,6 @@ try {
         db.settings(firestoreSettings);
     }
     
-    console.log('Firebase เริ่มต้นสำเร็จ');
 } catch (error) {
     console.warn('เกิดข้อผิดพลาดในการตั้งค่า Firebase:', error);
     // ไม่ให้ error นี้ทำให้แอปพลิเคชันหยุดทำงาน

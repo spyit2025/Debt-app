@@ -30,7 +30,9 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../../css/main.css?v=5.0.0">
+    <link rel="stylesheet" href="../../css/consolidated-core.css?v=6.0.0">
+    <link rel="stylesheet" href="../../css/consolidated-mobile.css?v=6.0.0">
+    <link rel="stylesheet" href="../../css/consolidated-pages.css?v=6.0.0">
     
     <style>
         .dashboard-header {
@@ -212,22 +214,76 @@
         
         /* Responsive table styling */
         .dataTables_wrapper .dataTables_scrollBody {
-            border: 1px solid #dee2e6;
+            border: none;
         }
         
         /* Table styling */
-        #mainPaymentHistoryTable {
+        #mainPaymentHistoryTable, #debtsTable {
             margin-bottom: 0;
             width: 100% !important;
+            table-layout: fixed;
         }
         
-        #mainPaymentHistoryTable thead th {
-            border-bottom: 2px solid #dee2e6;
+        #mainPaymentHistoryTable thead th, #debtsTable thead th {
+            border-bottom: 1px solid #dee2e6;
             font-weight: 600;
+            padding: 0.75rem 0.5rem;
+            font-size: 0.875rem;
         }
         
-        #mainPaymentHistoryTable tbody tr:hover {
+        #mainPaymentHistoryTable tbody tr:hover, #debtsTable tbody tr:hover {
             background-color: #f8f9fa;
+        }
+        
+        #mainPaymentHistoryTable tbody td, #debtsTable tbody td {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.875rem;
+            vertical-align: middle;
+        }
+        
+        /* Column width adjustments for debts table */
+        #debtsTable th:nth-child(1), #debtsTable td:nth-child(1) { width: 20%; } /* ชื่อลูกหนี้ */
+        #debtsTable th:nth-child(2), #debtsTable td:nth-child(2) { width: 25%; } /* คำอธิบาย */
+        #debtsTable th:nth-child(3), #debtsTable td:nth-child(3) { width: 15%; } /* สถานะ */
+        #debtsTable th:nth-child(4), #debtsTable td:nth-child(4) { width: 15%; } /* จำนวนเงิน */
+        #debtsTable th:nth-child(5), #debtsTable td:nth-child(5) { width: 15%; } /* วันครบกำหนด */
+        #debtsTable th:nth-child(6), #debtsTable td:nth-child(6) { width: 10%; } /* รายละเอียด */
+        
+        /* Column width adjustments for payment history table */
+        #mainPaymentHistoryTable th:nth-child(1), #mainPaymentHistoryTable td:nth-child(1) { width: 15%; } /* รหัสการชำระ */
+        #mainPaymentHistoryTable th:nth-child(2), #mainPaymentHistoryTable td:nth-child(2) { width: 20%; } /* วันที่และเวลา */
+        #mainPaymentHistoryTable th:nth-child(3), #mainPaymentHistoryTable td:nth-child(3) { width: 20%; } /* ชื่อลูกหนี้ */
+        #mainPaymentHistoryTable th:nth-child(4), #mainPaymentHistoryTable td:nth-child(4) { width: 10%; } /* งวดที่ */
+        #mainPaymentHistoryTable th:nth-child(5), #mainPaymentHistoryTable td:nth-child(5) { width: 15%; } /* จำนวนเงิน */
+        #mainPaymentHistoryTable th:nth-child(6), #mainPaymentHistoryTable td:nth-child(6) { width: 15%; } /* หมายเหตุ */
+        #mainPaymentHistoryTable th:nth-child(7), #mainPaymentHistoryTable td:nth-child(7) { width: 5%; } /* การดำเนินการ */
+        
+        /* Text truncation and alignment */
+        .text-truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        
+        .text-center {
+            text-align: center !important;
+        }
+        
+        .text-end {
+            text-align: right !important;
+        }
+        
+        /* Badge styling in tables */
+        .table .badge {
+            font-size: 0.75rem;
+            padding: 0.375rem 0.5rem;
+        }
+        
+        /* Button styling in tables */
+        .table .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
         }
         
         /* ปิด scroll bar สำหรับ DataTables */
@@ -238,6 +294,19 @@
         
         .dataTables_wrapper .dataTables_scroll {
             overflow: visible !important;
+        }
+        
+        /* ลบขอบจาก DataTables containers */
+        .dataTables_wrapper {
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+        }
+        
+        .dataTables_scrollHead,
+        .dataTables_scrollHeadInner {
+            border: none !important;
+            box-shadow: none !important;
         }
         
         /* ให้ตารางแสดงผลเต็มความกว้าง */
@@ -536,14 +605,36 @@
         }
         
         .modal-header .btn-close {
-            filter: invert(1);
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.8;
+            transition: all 0.2s ease;
         }
         
-        /* Improve focus management for modal close buttons */
+        .modal-header .btn-close:hover {
+            background-color: rgba(0, 0, 0, 0.2);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
         .modal-header .btn-close:focus {
-            outline: 2px solid #ffffff;
+            outline: 2px solid #2563eb;
             outline-offset: 2px;
-            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header .btn-close::before {
+            content: "×";
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            line-height: 1;
         }
         
         .modal-footer {
@@ -597,6 +688,24 @@
             .mobile-card-container {
                 display: block !important;
             }
+            
+            /* ปรับตารางสำหรับมือถือ */
+            #debtsTable, #mainPaymentHistoryTable {
+                font-size: 0.8rem;
+            }
+            
+            #debtsTable th, #debtsTable td,
+            #mainPaymentHistoryTable th, #mainPaymentHistoryTable td {
+                padding: 0.5rem 0.25rem;
+            }
+            
+            /* ปรับความกว้างคอลัมน์สำหรับมือถือ */
+            #debtsTable th:nth-child(1), #debtsTable td:nth-child(1) { width: 25%; }
+            #debtsTable th:nth-child(2), #debtsTable td:nth-child(2) { width: 30%; }
+            #debtsTable th:nth-child(3), #debtsTable td:nth-child(3) { width: 15%; }
+            #debtsTable th:nth-child(4), #debtsTable td:nth-child(4) { width: 15%; }
+            #debtsTable th:nth-child(5), #debtsTable td:nth-child(5) { width: 10%; }
+            #debtsTable th:nth-child(6), #debtsTable td:nth-child(6) { width: 5%; }
         }
         
         @media (min-width: 769px) {
@@ -608,6 +717,18 @@
             /* ซ่อน mobile card container บนหน้าจอใหญ่ */
             .mobile-card-container {
                 display: none !important;
+            }
+        }
+        
+        /* ปรับตารางสำหรับหน้าจอขนาดกลาง */
+        @media (min-width: 769px) and (max-width: 1200px) {
+            #debtsTable, #mainPaymentHistoryTable {
+                font-size: 0.85rem;
+            }
+            
+            #debtsTable th, #debtsTable td,
+            #mainPaymentHistoryTable th, #mainPaymentHistoryTable td {
+                padding: 0.6rem 0.4rem;
             }
         }
         
@@ -760,6 +881,51 @@
             line-height: 1.4;
         }
         
+        /* Mobile card container styles */
+        .mobile-card-container {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-card-container {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                min-height: 50px !important;
+            }
+        }
+        
+        /* Button group styling */
+        .btn-group .btn {
+            border-radius: 0;
+        }
+        
+        .btn-group .btn:first-child {
+            border-top-left-radius: 0.375rem;
+            border-bottom-left-radius: 0.375rem;
+        }
+        
+        .btn-group .btn:last-child {
+            border-top-right-radius: 0.375rem;
+            border-bottom-right-radius: 0.375rem;
+        }
+        
+        /* Responsive button layout */
+        @media (max-width: 768px) {
+            .d-flex.gap-2.flex-wrap {
+                flex-direction: column;
+                gap: 0.5rem !important;
+            }
+            
+            .btn-group {
+                width: 100%;
+            }
+            
+            .btn-group .btn {
+                flex: 1;
+            }
+        }
+        
         .text-info {
             color: #0dcaf0 !important;
         }
@@ -793,7 +959,7 @@
                             <i class="fas fa-tachometer-alt me-2"></i>
                             แดชบอร์ด
                         </a>
-                        <a class="nav-link" href="#debts" data-event-bound="true">
+                        <a class="nav-link" href="#List-of-debtors" data-event-bound="true">
                             <i class="fas fa-list me-2"></i>
                             รายการหนี้
                         </a>
@@ -827,7 +993,7 @@
                         </div>
                         
                         <!-- Logout Button (Desktop) -->
-                        <button class="btn btn-outline-light btn-sm d-none d-lg-inline-flex align-items-center me-2" onclick="confirmLogout()" title="ออกจากระบบ">
+                        <button class="btn btn-outline-light btn-sm d-none d-lg-inline-flex align-items-center me-2" id="logoutBtnDesktop" title="ออกจากระบบ">
                             <i class="fas fa-sign-out-alt me-1"></i>
                             <span>ออกจากระบบ</span>
                         </button>
@@ -862,7 +1028,7 @@
                             <i class="fas fa-tachometer-alt me-3"></i>
                             แดชบอร์ด
                         </a>
-                        <a class="nav-link" href="#debts" data-event-bound="true">
+                        <a class="nav-link" href="#List-of-debtors" data-event-bound="true">
                             <i class="fas fa-list me-3"></i>
                             รายการหนี้
                         </a>
@@ -881,7 +1047,7 @@
                         
                         <!-- Logout Button -->
                         <div class="mt-3 pt-3 border-top border-white-10">
-                            <a class="nav-link text-danger" href="#" onclick="confirmLogout()" data-event-bound="true">
+                            <a class="nav-link text-danger" href="#" id="logoutBtnMobile">
                                 <i class="fas fa-sign-out-alt me-3"></i>
                                 ออกจากระบบ
                             </a>
@@ -1039,23 +1205,6 @@
                                         <i class="fas fa-chart-pie me-2"></i>
                                         สถานะหนี้
                                     </h5>
-                                    <div class="btn-group" role="group">
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsImage('status')" title="ส่งออกกราฟ">
-                                            <i class="fas fa-image"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="exportChartData('status')" title="ส่งออกข้อมูล">
-                                            <i class="fas fa-file-csv"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="printChart('status')" title="พิมพ์กราฟ">
-                                            <i class="fas fa-print"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleChartFullscreen('status')" title="เปิดเต็มหน้าจอ">
-                                            <i class="fas fa-expand"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="refreshCharts()" title="รีเฟรชกราฟ">
-                                            <i class="fas fa-sync-alt"></i>
-                                        </button>
-                                    </div>
                                 </div>
                                 <div class="p-3">
                                     <div class="chart-container">
@@ -1071,27 +1220,16 @@
                                         <i class="fas fa-chart-line me-2"></i>
                                         หนี้รายเดือน
                                     </h5>
-                                    <div class="btn-group" role="group">
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsImage('monthly')" title="ส่งออกกราฟ">
-                                            <i class="fas fa-image"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="exportChartData('monthly')" title="ส่งออกข้อมูล">
-                                            <i class="fas fa-file-csv"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="printChart('monthly')" title="พิมพ์กราฟ">
-                                            <i class="fas fa-print"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleChartFullscreen('monthly')" title="เปิดเต็มหน้าจอ">
-                                            <i class="fas fa-expand"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="refreshCharts()" title="รีเฟรชกราฟ">
-                                            <i class="fas fa-sync-alt"></i>
-                                        </button>
-                                    </div>
                                 </div>
                                 <div class="p-3">
                                     <div class="chart-container">
                                         <canvas id="monthlyDebtChart"></canvas>
+                                        <div id="monthlyDebtChartLoading" class="text-center py-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">กำลังโหลด...</span>
+                                            </div>
+                                            <p class="mt-2 text-muted">กำลังโหลดข้อมูลกราฟ...</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1110,33 +1248,6 @@
                                 </div>
                                 <div id="recentDebtsList">
                                     <!-- Debt items will be loaded here -->
-                                    <div class="debt-item">
-                                        <div class="row align-items-center">
-                                            <div class="col-md-1">
-                                                <div class="user-avatar">
-                                                    <i class="fas fa-user"></i>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <h6 class="mb-1">ยังไม่มีข้อมูล</h6>
-                                                <small class="text-muted">เริ่มต้นเพิ่มหนี้ใหม่</small>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <span class="badge bg-secondary">ไม่มีข้อมูล</span>
-                                            </div>
-                                            <div class="col-md-2 text-end">
-                                                <strong>฿0</strong>
-                                            </div>
-                                            <div class="col-md-2 text-end">
-                                                <small class="text-muted">-</small>
-                                            </div>
-                                            <div class="col-md-2 text-end">
-                                                <button class="btn btn-sm btn-outline-primary" disabled>
-                                                    <i class="fas fa-eye me-1"></i>ดูรายละเอียด
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1151,44 +1262,83 @@
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <h4><i class="fas fa-list me-2"></i>รายการหนี้ทั้งหมด</h4>
-                                <button class="btn btn-primary" onclick="showAddDebtForm()">
-                                    <i class="fas fa-plus me-2"></i>เพิ่มข้อมูล
-                                </button>
-                            </div>
-                            <!-- Desktop Table View -->
-                            <div class="debt-list desktop-table-container">
-                                <div class="p-3 border-bottom">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-1">
-                                            <h6 class="mb-0">รหัสลูกหนี้</h6>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <h6 class="mb-0">ชื่อลูกหนี้</h6>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <h6 class="mb-0">สถานะ</h6>
-                                        </div>
-                                        <div class="col-md-2 text-end">
-                                            <h6 class="mb-0">จำนวนเงิน</h6>
-                                        </div>
-                                        <div class="col-md-2 text-end">
-                                            <h6 class="mb-0">วันครบกำหนด</h6>
-                                        </div>
-                                        <div class="col-md-2 text-end">
-                                            <h6 class="mb-0">วันที่สร้าง</h6>
-                                        </div>
-                                        <div class="col-md-1 text-end">
-                                            <h6 class="mb-0">การดำเนินการ</h6>
-                                        </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button class="btn btn-primary" onclick="showAddDebtForm()">
+                                        <i class="fas fa-plus me-2"></i>เพิ่มข้อมูล
+                                    </button>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-success" onclick="exportDebtsData('excel')">
+                                            <i class="fas fa-file-excel me-2"></i>Excel
+                                        </button>
+                                        <button class="btn btn-info" onclick="exportDebtsData('pdf')">
+                                            <i class="fas fa-file-pdf me-2"></i>PDF
+                                        </button>
                                     </div>
                                 </div>
-                                <div id="creditorAllDebtsList">
-                                    <!-- All debts will be loaded here -->
+                            </div>
+                            
+                            <!-- Advanced Filters -->
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">กรองตามสถานะ:</label>
+                                    <select id="statusFilter" class="form-select" onchange="filterByStatus()">
+                                        <option value="">ทั้งหมด</option>
+                                        <option value="active">ใช้งาน</option>
+                                        <option value="inactive">ไม่ใช้งาน</option>
+                                        <option value="completed">ชำระครบแล้ว</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">กรองตามจำนวนเงิน:</label>
+                                    <select id="amountFilter" class="form-select" onchange="filterByAmount()">
+                                        <option value="">ทั้งหมด</option>
+                                        <option value="0-10000">0 - 10,000 บาท</option>
+                                        <option value="10000-50000">10,000 - 50,000 บาท</option>
+                                        <option value="50000-100000">50,000 - 100,000 บาท</option>
+                                        <option value="100000+">มากกว่า 100,000 บาท</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">กรองตามวันครบกำหนด:</label>
+                                    <select id="dueDateFilter" class="form-select" onchange="filterByDueDate()">
+                                        <option value="">ทั้งหมด</option>
+                                        <option value="overdue">เกินกำหนด</option>
+                                        <option value="thisWeek">สัปดาห์นี้</option>
+                                        <option value="thisMonth">เดือนนี้</option>
+                                        <option value="nextMonth">เดือนหน้า</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">รีเซ็ตตัวกรอง:</label>
+                                    <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">
+                                        <i class="fas fa-undo me-2"></i>รีเซ็ต
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Desktop Table View -->
+                            <div class="debt-list desktop-table-container d-none d-lg-block">
+                                <div class="table-responsive">
+                                    <table id="debtsTable" class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>ชื่อลูกหนี้</th>
+                                                <th>คำอธิบาย</th>
+                                                <th>สถานะ</th>
+                                                <th class="text-end">จำนวนเงิน</th>
+                                                <th class="text-end">วันครบกำหนด</th>
+                                                <th class="text-center">รายละเอียด</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="debtsTableBody">
+                                            <!-- Data will be loaded here -->
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                             
                             <!-- Mobile Card View -->
-                            <div class="mobile-card-container" id="mobileDebtsList">
+                            <div class="mobile-card-container d-lg-none" id="mobileDebtsList">
                                 <!-- Mobile debt cards will be loaded here -->
                             </div>
                         </div>
@@ -1613,7 +1763,7 @@
                                     </div>
 
                                     <!-- Mobile Card Container -->
-                                    <div class="mobile-card-container" id="paymentHistoryMobileCards">
+                                    <div class="mobile-card-container d-lg-none" id="paymentHistoryMobileCards">
                                         <!-- Mobile cards will be generated here by JavaScript -->
                                     </div>
                                     
@@ -1686,10 +1836,16 @@
     <!-- DataTables Initialization -->
     <script src="../../js/datatables-init.js?v=20250913143643"></script>
     
+    <!-- Mobile Card System -->
+    <script src="../../js/mobile-card-system.js?v=20250913143643"></script>
+    
     <!-- Custom JS -->
     <script type="module" src="../../js/firebase-config.js?v=20250913143643"></script>
     <script type="module" src="../../js/auth.js?v=20250913143643"></script>
     <script type="module" src="creditor-dashboard.js?v=20250913143643"></script>
+    
+    <!-- Container Location Fix Script -->
+    <script src="../../fix-container-locations.js?v=20250913143643"></script>
     
 </body>
 </html>
