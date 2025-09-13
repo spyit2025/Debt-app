@@ -3,7 +3,7 @@
   "short_name": "จัดการหนี้",
   "description": "ระบบจัดการหนี้สินแบบครบวงจรสำหรับเจ้าหนี้และลูกหนี้",
   "start_url": "/",
-  "display": "minimal-ui",
+  "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "orientation": "portrait-primary",
@@ -110,7 +110,7 @@
   "permissions": [
     "background-sync"
   ],
-  "display_override": ["minimal-ui", "browser", "standalone"],
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "window_controls_overlay": {
     "title_bar_area": {
       "x": 0,
