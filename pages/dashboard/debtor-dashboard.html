@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="description" content="แดชบอร์ดลูกหนี้ - ระบบจัดการหนี้">
     
     <!-- Content Security Policy -->
@@ -780,6 +780,83 @@
                 padding: 0.25rem 0.25rem;
             }
         }
+        
+        /* Mobile Table Styles */
+        .mobile-table {
+            font-size: 0.8rem;
+        }
+        
+        .mobile-table th,
+        .mobile-table td {
+            padding: 0.5rem 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .mobile-table th {
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        
+        .mobile-table td {
+            font-size: 0.75rem;
+        }
+        
+        .mobile-table .btn {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.4rem;
+        }
+        
+        .mobile-table .badge {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.4rem;
+        }
+        
+        /* Horizontal scroll for mobile tables */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Ensure mobile tables are visible */
+        @media (max-width: 991.98px) {
+            .mobile-table {
+                display: table !important;
+                width: 100%;
+                min-width: 600px; /* Minimum width to ensure readability */
+            }
+            
+            .mobile-table th,
+            .mobile-table td {
+                display: table-cell !important;
+            }
+        }
+        
+        /* Very small mobile adjustments */
+        @media (max-width: 576px) {
+            .mobile-table {
+                font-size: 0.7rem;
+                min-width: 500px;
+            }
+            
+            .mobile-table th,
+            .mobile-table td {
+                padding: 0.4rem 0.2rem;
+                font-size: 0.7rem;
+            }
+            
+            .mobile-table .btn {
+                font-size: 0.65rem;
+                padding: 0.15rem 0.3rem;
+            }
+            
+            .mobile-table .badge {
+                font-size: 0.6rem;
+                padding: 0.15rem 0.3rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1098,9 +1175,25 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Mobile Card View -->
-                                <div class="d-lg-none" id="debtorAllDebtsList">
-                                    <!-- All debt items will be loaded here for mobile -->
+                                <!-- Mobile Table View -->
+                                <div class="d-lg-none">
+                                    <div class="table-responsive">
+                                        <table id="debtsTableMobile" class="table table-hover mobile-table">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>รหัสลูกหนี้</th>
+                                                    <th>คำอธิบาย</th>
+                                                    <th>สถานะ</th>
+                                                    <th class="text-end">จำนวนเงิน</th>
+                                                    <th class="text-end">วันครบกำหนด</th>
+                                                    <th class="text-center">รายละเอียด</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="debtsTableBodyMobile">
+                                                <!-- Data will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1141,9 +1234,24 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Mobile Card View -->
-                                <div class="d-lg-none" id="paymentHistoryList">
-                                    <!-- Payment history items will be loaded here for mobile -->
+                                <!-- Mobile Table View -->
+                                <div class="d-lg-none">
+                                    <div class="table-responsive">
+                                        <table id="paymentHistoryTableMobile" class="table table-hover mobile-table">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>รายละเอียดหนี้</th>
+                                                    <th>เจ้าหนี้</th>
+                                                    <th>สถานะ</th>
+                                                    <th class="text-end">จำนวนเงิน</th>
+                                                    <th class="text-end">วันที่ชำระ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="debtorPaymentHistoryTableBodyMobile">
+                                                <!-- Data will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
