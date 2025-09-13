@@ -26,6 +26,13 @@ const storage = getStorage(app);
 // ส่งออกบริการ Firebase
 export { app, analytics, auth, db, storage };
 
+// Export individual services for better compatibility
+export { auth as firebaseAuth };
+export { db as firestore };
+
+// Debug: Log exports to verify they're available
+console.log('Firebase exports:', { app, analytics, auth, db, storage });
+
 // เพิ่มการจัดการ Firebase errors
 try {
     // ตั้งค่า timeout สำหรับ Firestore operations
