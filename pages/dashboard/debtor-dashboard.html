@@ -5,20 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <meta name="description" content="แดชบอร์ดลูกหนี้ - ระบบจัดการหนี้">
     
-    <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdn.datatables.net https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;
-        style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;
-        font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com;
-        img-src 'self' data: blob: https:;
-        connect-src 'self' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdn.datatables.net https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
-        frame-src 'none';
-        object-src 'none';
-        base-uri 'self';
-        form-action 'self';
-    ">
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     <title>ระบบจัดการหนี้ - แดชบอร์ดลูกหนี้</title>
     
     <!-- Favicon -->
@@ -44,14 +33,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../../css/universal-responsive.css?v=4.0.0">
-    <link rel="stylesheet" href="../../css/style.css?v=4.0.0">
-    <link rel="stylesheet" href="../../css/login.css?v=4.0.0">
-    <link rel="stylesheet" href="../../css/dashboard-styles.css?v=4.0.0">
-    <link rel="stylesheet" href="../../css/debtor-dashboard.css">
-    <link rel="stylesheet" href="../../css/performance.css?v=4.0.0">
-    <link rel="stylesheet" href="../../css/mobile-chrome-fix.css?v=4.0.0">
-    <link rel="stylesheet" href="../../css/force-mobile-layout.css?v=4.0.0">
+    <link rel="stylesheet" href="../../css/main.css?v=5.0.0">
     
     <style>
         .dashboard-header {
@@ -1524,187 +1506,11 @@
     <!-- DataTables Initialization -->
     <script src="../../js/datatables-init.js?v=2.1.0"></script>
     
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
-    
     <!-- Custom JS -->
-    <script src="../../js/performance.js?v=4.0.0"></script>
-    <script src="../../js/error-handler.js?v=4.0.0"></script>
-    <script src="../../js/logger.js?v=4.0.0"></script>
-    <script src="../../js/firebase-config.js?v=4.0.0"></script>
-    <script src="../../js/firebase-utils.js?v=4.0.0"></script>
-    <script src="../../js/security-utils.js?v=4.0.0"></script>
-    <script src="../../js/alert-utils.js?v=4.0.0"></script>
-    <script src="../../js/auth.js?v=4.0.0"></script>
-    <script src="../../js/login.js?v=4.0.0"></script>
-    <script src="../../js/responsive-nav.js?v=4.0.0"></script>
-    <script src="debtor-dashboard.js"></script>
+    <script type="module" src="../../js/firebase-config.js?v=5.0.0"></script>
+    <script type="module" src="../../js/auth.js?v=5.0.0"></script>
     
-    <script>
-        // Debug logging removed for production
-        
-        // Function to confirm logout
-        function confirmLogout() {
-            if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
-                // Show success message before logout
-                if (typeof showToast === 'function') {
-                    showToast('กำลังออกจากระบบ...', 'info');
-                }
-                
-                // Call the original logout function
-                if (typeof logout === 'function') {
-                    logout();
-                } else {
-                    // Fallback if logout function is not available
-                    window.location.href = '../../index.html';
-                }
-            }
-        }
-        
-        // Update mobile menu user name when main user name is updated
-        function updateMobileUserName() {
-            const mainUserName = document.getElementById('userName');
-            const mobileUserName = document.getElementById('mobileUserName');
-            
-            if (mainUserName && mobileUserName) {
-                mobileUserName.textContent = mainUserName.textContent;
-            }
-        }
-        
-        // Listen for changes to the main user name
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === 'childList' || mutation.type === 'characterData') {
-                    updateMobileUserName();
-                }
-            });
-        });
-        
-        // Start observing when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // ล้าง redirect flag เมื่อโหลดหน้า dashboard
-            sessionStorage.removeItem('isRedirecting');
-            
-            const userNameElement = document.getElementById('userName');
-            if (userNameElement) {
-                observer.observe(userNameElement, {
-                    childList: true,
-                    characterData: true,
-                    subtree: true
-                });
-                // Initial update
-                updateMobileUserName();
-            }
-            
-            // Add click event listeners to mobile menu links
-            setupMobileMenuNavigation();
-            
-            // Listen for hash changes
-            window.addEventListener('hashchange', function() {
-                const hash = window.location.hash || '#dashboard';
-                updateMobileActiveNavLink(hash);
-                showContentSection(hash);
-            });
-            
-            // Initial navigation based on current hash
-            const initialHash = window.location.hash || '#dashboard';
-            updateMobileActiveNavLink(initialHash);
-            showContentSection(initialHash);
-        });
-        
-        // Setup mobile menu navigation
-        function setupMobileMenuNavigation() {
-            const mobileMenuLinks = document.querySelectorAll('.offcanvas-body .nav-link[href^="#"]');
-            
-            mobileMenuLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const href = this.getAttribute('href');
-                    
-                    // Call the navigation function if it exists
-                    if (typeof handleNavigation === 'function') {
-                        handleNavigation(href);
-                    } else {
-                        // Fallback: manually handle navigation
-                        window.location.hash = href;
-                        updateMobileActiveNavLink(href);
-                        showContentSection(href);
-                    }
-                });
-            });
-        }
-        
-        // Update active nav link in mobile menu
-        function updateMobileActiveNavLink(href) {
-            // Remove active class from all mobile menu links (both desktop and mobile)
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            
-            // Add active class to current mobile menu link
-            const mobileActiveLink = document.querySelector(`.offcanvas-body .nav-link[href="${href}"]`);
-            if (mobileActiveLink) {
-                mobileActiveLink.classList.add('active');
-            }
-            
-            // Also update desktop navigation if it exists
-            const desktopActiveLink = document.querySelector(`header .nav-link[href="${href}"]`);
-            if (desktopActiveLink) {
-                desktopActiveLink.classList.add('active');
-            }
-        }
-        
-        // Show content section based on hash
-        function showContentSection(href) {
-            // Hide all content sections
-            const sections = ['dashboard-content', 'my-debts-content', 'history-content', 'settings-content'];
-            sections.forEach(sectionId => {
-                const section = document.getElementById(sectionId);
-                if (section) {
-                    section.style.display = 'none';
-                }
-            });
-            
-            // Show the appropriate section
-            let targetSectionId = 'dashboard-content'; // default
-            
-            switch (href) {
-                case '#dashboard':
-                    targetSectionId = 'dashboard-content';
-                    break;
-                case '#my-debts':
-                    targetSectionId = 'my-debts-content';
-                    break;
-                case '#history':
-                    targetSectionId = 'history-content';
-                    break;
-                case '#settings':
-                    targetSectionId = 'settings-content';
-                    break;
-            }
-            
-            const targetSection = document.getElementById(targetSectionId);
-            if (targetSection) {
-                targetSection.style.display = 'block';
-            }
-        }
-    </script>
+    <script type="module" src="debtor-dashboard.js?v=5.0.0"></script>
     
-    <!-- Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('../../sw.js')
-                    .then(registration => {
-                        // Service Worker registered successfully
-                    })
-                    .catch(error => {
-                        console.error('Service Worker registration failed:', error);
-                    });
-            });
-        }
-    </script>
 </body>
 </html>
