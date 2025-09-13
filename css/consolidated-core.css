@@ -534,6 +534,23 @@ input, textarea, select {
     appearance: none;
     border-radius: var(--radius);
     transition: var(--transition-fast);
+    color: var(--dark);
+    font-weight: 500;
+}
+
+/* Enhanced form controls for better text visibility */
+.form-control {
+    color: var(--dark);
+    font-weight: 500;
+}
+
+.form-control:focus {
+    color: var(--dark);
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+    font-weight: 400;
 }
 
 /* Enhanced form labels for better visibility */
